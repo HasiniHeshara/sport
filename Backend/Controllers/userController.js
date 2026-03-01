@@ -1,87 +1,77 @@
-const User = require("../Models/userModel");
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../Models/userModel');
 
-// POST /api/users/register
-exports.register = async (req, res) => {
+// Register a new user (organizer/participant)
+const registerUser = async (req, res) => {
+  const { itNumber, name, year, faculty, contactNumber, email, password, role } = req.body;
+
   try {
-    const { name, email, password, role, phone } = req.body;
-
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "name, email, password required" });
+    // Check if user already exists
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: 'User already exists' });
     }
 
-    const exist = await User.findOne({ email });
-    if (exist) return res.status(409).json({ message: "Email already exists" });
-
-    const user = await User.create({ name, email, password, role, phone });
-    return res.status(201).json({ message: "User created", user });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Server error" });
-  }
-};
-
-// POST /api/users/login  (simple DB check)
-exports.login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ message: "email and password required" });
+    // Check if IT number already exists
+    const itExists = await User.findOne({ itNumber });
+    if (itExists) {
+      return res.status(400).json({ message: 'IT number already registered' });
     }
 
-    const user = await User.findOne({ email, password }); // direct match
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-    return res.json({ message: "Login success", user });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Server error" });
+    // Create new user
+    const user = new User({
+      itNumber,
+      name,
+      year,
+      faculty,
+      contactNumber,
+      email,
+      password: hashedPassword,
+      role,
+    });
+
+    await user.save();
+
+    // Generate JWT token
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    res.status(201).json({ message: 'User registered successfully', token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error });
   }
 };
 
-// GET /api/users
-exports.getAllUsers = async (req, res) => {
+// Login user
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const users = await User.find();
-    return res.json(users);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Server error" });
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    // Compare password with hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    res.json({ message: 'Logged in successfully', token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error });
   }
 };
 
-// GET /api/users/:id
-exports.getUserById = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-    return res.json(user);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Server error" });
-  }
-};
-
-// PUT /api/users/:id
-exports.updateUser = async (req, res) => {
-  try {
-    const updated = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated) return res.status(404).json({ message: "User not found" });
-    return res.json({ message: "Updated", user: updated });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Server error" });
-  }
-};
-
-// DELETE /api/users/:id
-exports.deleteUser = async (req, res) => {
-  try {
-    const deleted = await User.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: "User not found" });
-    return res.json({ message: "Deleted user" });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Server error" });
-  }
-};
+module.exports = { registerUser, loginUser };
