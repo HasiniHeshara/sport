@@ -1,25 +1,27 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home/Home";
 
-function App() {
+function Placeholder({ title }) {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div style={{ padding: 30, fontFamily: "Arial" }}>
+      <h2>{title}</h2>
+      <p>This page will be implemented later.</p>
     </div>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/tournaments" element={<Placeholder title="Tournaments" />} />
+        <Route path="/about" element={<Placeholder title="About" />} />
+        <Route path="/contact" element={<Placeholder title="Contact" />} />
+        <Route path="/login" element={<Placeholder title="Login" />} />
+        <Route path="/register" element={<Placeholder title="Register" />} />
+        <Route path="/tournaments/:id" element={<Placeholder title="Tournament Details" />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
