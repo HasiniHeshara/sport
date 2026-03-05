@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home/Home";
+import Register from "./pages/Register/Register";
 
 function Placeholder({ title }) {
   return (
@@ -19,8 +20,9 @@ export default function App() {
         <Route path="/about" element={<Placeholder title="About" />} />
         <Route path="/contact" element={<Placeholder title="Contact" />} />
         <Route path="/login" element={<Placeholder title="Login" />} />
-        <Route path="/register" element={<Placeholder title="Register" />} />
+        
         <Route path="/tournaments/:id" element={<Placeholder title="Tournament Details" />} />
+        <Route path="/register" element={<Register />} />
       </Routes>
     </BrowserRouter>
   );
