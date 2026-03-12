@@ -57,7 +57,7 @@ export default function Register() {
 
       // ⚠️ Change URL if your backend route is different
       // Example: http://localhost:5000/api/auth/register
-      const res = await axios.post("http://localhost:5000/api/auth/register", form);
+      const res = await axios.post("http://localhost:5000/api/users/register", form);
 
       setMsg({ type: "success", text: res.data?.message || "Registered successfully!" });
 
