@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home/Home";
 import Register from "./pages/Register/Register";
+import Login from "./pages/Login/Login";
+
 
 function Placeholder({ title }) {
   return (
@@ -23,6 +25,11 @@ export default function App() {
         
         <Route path="/tournaments/:id" element={<Placeholder title="Tournament Details" />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+
+      <Route path="/organizer-dashboard" element={<h2 style={{color:"white", padding:"20px"}}>Organizer Dashboard</h2>} />
+      <Route path="/participant-dashboard" element={<h2 style={{color:"white", padding:"20px"}}>Participant Dashboard</h2>} />  
+
       </Routes>
     </BrowserRouter>
   );
