@@ -54,7 +54,7 @@ export default function Home() {
           </nav>
 
           <div className="nav-actions">
-            <button className="nav-btn ghost" onClick={() => setShowAuth(true)}>
+            <button className="nav-btn ghost" onClick={() => navigate("/login")}>
               Login
             </button>
             <button className="nav-btn primary" onClick={() => navigate("/register")}>
@@ -133,7 +133,7 @@ export default function Home() {
               </p>
 
               <div className="auth-actions">
-                <button className="action-button" onClick={() => navigate("/login")}>
+                <button className="action-button" onClick={() =>setShowAuth(true)}>
                   Login
                 </button>
                 <button className="action-button outline" onClick={() => navigate("/register")}>
