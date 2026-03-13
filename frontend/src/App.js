@@ -21,7 +21,7 @@ export default function App() {
         <Route path="/tournaments" element={<Placeholder title="Tournaments" />} />
         <Route path="/about" element={<Placeholder title="About" />} />
         <Route path="/contact" element={<Placeholder title="Contact" />} />
-        <Route path="/login" element={<Placeholder title="Login" />} />
+        
         
         <Route path="/tournaments/:id" element={<Placeholder title="Tournament Details" />} />
         <Route path="/register" element={<Register />} />
