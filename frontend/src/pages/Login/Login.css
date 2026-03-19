@@ -50,7 +50,7 @@
 }
 
 .login-form {
-  margin-top: 16px;
+  margin-top: 20px;
   display: grid;
   gap: 14px;
 }
@@ -64,7 +64,7 @@
 
 .field input {
   width: 100%;
-  padding: 11px 12px;
+  padding: 11px 6px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.06);
@@ -81,7 +81,7 @@
   padding: 12px 14px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: #4f46e5;
+  background: #dd5810;
   color: #fff;
   cursor: pointer;
   font-size: 14px;

@@ -60,6 +60,9 @@ export default function Home() {
             <button className="nav-btn primary" onClick={() => navigate("/register")}>
               Register
             </button>
+            <button onClick={() => navigate("/adminlogin")}>
+            Admin Login
+            </button>
           </div>
         </header>
 

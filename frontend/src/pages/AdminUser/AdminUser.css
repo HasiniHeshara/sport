@@ -1,0 +1,114 @@
+.admin-users-page {
+  min-height: 100vh;
+  background: #0b1020;
+  color: white;
+  padding: 24px;
+  font-family: Arial, sans-serif;
+}
+
+.admin-users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.admin-users-page h2 {
+  margin: 0;
+}
+
+.pdf-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background: #4f46e5;
+  color: white;
+  cursor: pointer;
+}
+
+.pdf-btn:hover {
+  opacity: 0.9;
+}
+
+.message-text {
+  margin-bottom: 15px;
+  color: #93c5fd;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+th,
+td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  vertical-align: middle;
+}
+
+td {
+  color: #dbeafe;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #1e293b;
+  color: white;
+}
+
+.action-cell {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.edit-btn,
+.delete-btn,
+.save-btn,
+.cancel-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+.edit-btn {
+  background: #3b82f6;
+}
+
+.delete-btn {
+  background: #ef4444;
+}
+
+.save-btn {
+  background: #22c55e;
+}
+
+.cancel-btn {
+  background: #6b7280;
+}
+
+.edit-btn:hover,
+.delete-btn:hover,
+.save-btn:hover,
+.cancel-btn:hover {
+  opacity: 0.9;
+}
