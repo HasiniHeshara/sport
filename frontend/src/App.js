@@ -4,6 +4,10 @@ import Register from "./pages/Register/Register";
 import Login from "./pages/Login/Login";
 
 
+import AdminLogin from "./pages/AdminLogin/AdminLogin";
+import AdminUsers from "./pages/AdminUser/AdminUser";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
+
 function Placeholder({ title }) {
   return (
     <div style={{ padding: 30, fontFamily: "Arial" }}>
@@ -28,7 +32,12 @@ export default function App() {
         <Route path="/login" element={<Login />} />
 
       <Route path="/organizer-dashboard" element={<h2 style={{color:"white", padding:"20px"}}>Organizer Dashboard</h2>} />
-      <Route path="/participant-dashboard" element={<h2 style={{color:"white", padding:"20px"}}>Participant Dashboard</h2>} />  
+      <Route path="/participant-dashboard" element={<h2 style={{color:"white", padding:"20px"}}>Participant Dashboard</h2>} /> 
+
+
+      <Route path="/adminlogin" element={<AdminLogin />} />
+      <Route path="/adminusers" element={<AdminUsers />} /> 
+      <Route path="/admindashboard" element={<AdminDashboard />} /> 
 
       </Routes>
     </BrowserRouter>
