@@ -60,7 +60,7 @@ export default function Home() {
             <button className="nav-btn primary" onClick={() => navigate("/register")}>
               Register
             </button>
-            <button onClick={() => navigate("/adminlogin")}>
+            <button className="nav-btn primary" onClick={() => navigate("/adminlogin")}>
             Admin Login
             </button>
           </div>
@@ -120,8 +120,8 @@ export default function Home() {
 
           <div className="feature-card">
             <img src={feature3} alt="Receipt Payment" />
-            <h3>Receipt Payments</h3>
-            <p>Upload payment receipts for confirmation without needing PayPal accounts.</p>
+            <h3>Book Equipments</h3>
+            <p>Organizers can book equipment that need for thier tournamnets.</p>
           </div>
         </section>
 
