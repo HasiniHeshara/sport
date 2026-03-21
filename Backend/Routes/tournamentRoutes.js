@@ -18,10 +18,12 @@ const Tournament = require("../Models/tournamentModel");
 router.get("/published", getPublishedTournaments);
 
 // ✅ Organizer dashboard (query organizerId for now)
+// ✅ Organizer dashboard (for now using query organizerId)
 router.get("/mine", getMyTournaments);
 
 /**
  * ✅ DEBUG: show real tournament _id + length
+ * Use:
  * GET /api/tournaments/debug/mine?organizerId=YOUR_ORGANIZER_ID
  */
 router.get("/debug/mine", async (req, res) => {
@@ -43,6 +45,7 @@ router.get("/debug/mine", async (req, res) => {
 });
 
 // ✅ Get tournament by id (for edit page)
+// ✅ Get tournament by id (for testing)
 router.get("/:id", async (req, res) => {
   try {
     const t = await Tournament.findById(req.params.id);

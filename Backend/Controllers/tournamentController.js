@@ -3,6 +3,8 @@ const Tournament = require("../Models/tournamentModel");
 /**
  * Extract first valid 24-hex Mongo ObjectId from any string.
  * (Fixes hidden \ or " problems from Postman)
+ * ✅ Bulletproof ObjectId extractor:
+ * - extracts the first 24-hex chars anywhere inside the string
  */
 const extractObjectId = (value = "") => {
   const str = String(value).trim();
@@ -62,15 +64,24 @@ exports.createTournament = async (req, res) => {
   }
 };
 
-// ✅ Update Tournament
+
+// ✅ Update Tournament (Organizer)
 exports.updateTournament = async (req, res) => {
   try {
     const cleanId = extractObjectId(req.params.id);
+    const cleanOrganizerId = extractObjectId(req.query.organizerId || req.body.organizerId || "");
+
     if (!cleanId) {
       return res.status(400).json({ message: "Invalid tournament id", received: req.params.id });
     }
 
-    const updated = await Tournament.findByIdAndUpdate(cleanId, req.body, { new: true });
+    // ✅ only allow update by owner organizer (temporary security)
+    const updated = await Tournament.findOneAndUpdate(
+      { _id: cleanId, ...(cleanOrganizerId ? { organizerId: cleanOrganizerId } : {}) },
+      req.body,
+      { new: true }
+    );
+
     if (!updated) return res.status(404).json({ message: "Tournament not found" });
 
     res.json({ message: "Tournament updated", tournament: updated });
@@ -83,6 +94,8 @@ exports.updateTournament = async (req, res) => {
 exports.publishTournament = async (req, res) => {
   try {
     const cleanId = extractObjectId(req.params.id);
+    console.log("PUBLISH rawId:", req.params.id, "cleanId:", cleanId);
+
     if (!cleanId) {
       return res.status(400).json({ message: "Invalid tournament id", received: req.params.id });
     }
