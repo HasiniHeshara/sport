@@ -1,6 +1,8 @@
 const Tournament = require("../Models/tournamentModel");
 
 /**
+ * Extract first valid 24-hex Mongo ObjectId from any string.
+ * (Fixes hidden \ or " problems from Postman)
  * ✅ Bulletproof ObjectId extractor:
  * - extracts the first 24-hex chars anywhere inside the string
  */
@@ -62,14 +64,12 @@ exports.createTournament = async (req, res) => {
   }
 };
 
+
 // ✅ Update Tournament (Organizer)
 exports.updateTournament = async (req, res) => {
   try {
     const cleanId = extractObjectId(req.params.id);
     const cleanOrganizerId = extractObjectId(req.query.organizerId || req.body.organizerId || "");
-
-    console.log("UPDATE rawId:", req.params.id, "cleanId:", cleanId);
-    console.log("UPDATE organizerId:", cleanOrganizerId);
 
     if (!cleanId) {
       return res.status(400).json({ message: "Invalid tournament id", received: req.params.id });
@@ -112,13 +112,15 @@ exports.publishTournament = async (req, res) => {
   }
 };
 
-// ✅ Unpublish Tournament (back to Draft)
+// ✅ Unpublish Tournament
 exports.unpublishTournament = async (req, res) => {
   try {
-    const id = String(req.params.id).trim().replace(/["'\\]/g, "");
-    console.log("UNPUBLISH id:", id);
+    const cleanId = extractObjectId(req.params.id);
+    if (!cleanId) {
+      return res.status(400).json({ message: "Invalid tournament id", received: req.params.id });
+    }
 
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findById(cleanId);
     if (!tournament) return res.status(404).json({ message: "Tournament not found" });
 
     tournament.status = "Draft";
@@ -134,20 +136,11 @@ exports.unpublishTournament = async (req, res) => {
 exports.closeTournament = async (req, res) => {
   try {
     const cleanId = extractObjectId(req.params.id);
-    const cleanOrganizerId = extractObjectId(req.query.organizerId || "");
-
-    console.log("CLOSE rawId:", req.params.id, "cleanId:", cleanId);
-    console.log("CLOSE organizerId:", cleanOrganizerId);
-
     if (!cleanId) {
       return res.status(400).json({ message: "Invalid tournament id", received: req.params.id });
     }
 
-    const tournament = await Tournament.findOne({
-      _id: cleanId,
-      ...(cleanOrganizerId ? { organizerId: cleanOrganizerId } : {}),
-    });
-
+    const tournament = await Tournament.findById(cleanId);
     if (!tournament) return res.status(404).json({ message: "Tournament not found" });
 
     tournament.status = "Closed";
@@ -159,7 +152,25 @@ exports.closeTournament = async (req, res) => {
   }
 };
 
-// ✅ Get all Published tournaments
+// ✅ Delete Tournament (any status)
+exports.deleteTournament = async (req, res) => {
+  try {
+    const cleanId = extractObjectId(req.params.id);
+    if (!cleanId) {
+      return res.status(400).json({ message: "Invalid tournament id", received: req.params.id });
+    }
+
+    const tournament = await Tournament.findById(cleanId);
+    if (!tournament) return res.status(404).json({ message: "Tournament not found" });
+
+    await Tournament.findByIdAndDelete(cleanId);
+    res.json({ message: "Tournament deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ✅ Get Published Tournaments
 exports.getPublishedTournaments = async (req, res) => {
   try {
     const tournaments = await Tournament.find({ status: "Published" }).sort({ createdAt: -1 });
@@ -169,12 +180,10 @@ exports.getPublishedTournaments = async (req, res) => {
   }
 };
 
-// ✅ Get tournaments created by organizer
+// ✅ Get My Tournaments (using organizerId query for now)
 exports.getMyTournaments = async (req, res) => {
   try {
     const cleanOrganizerId = extractObjectId(req.query.organizerId);
-    console.log("MINE organizerId:", req.query.organizerId, "clean:", cleanOrganizerId);
-
     if (!cleanOrganizerId) {
       return res.status(400).json({
         message: "Invalid organizerId",

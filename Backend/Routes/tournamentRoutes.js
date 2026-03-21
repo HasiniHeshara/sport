@@ -7,6 +7,7 @@ const {
   publishTournament,
   unpublishTournament,
   closeTournament,
+  deleteTournament,
   getPublishedTournaments,
   getMyTournaments,
 } = require("../Controllers/tournamentController");
@@ -16,6 +17,7 @@ const Tournament = require("../Models/tournamentModel");
 // ✅ Public / Participant
 router.get("/published", getPublishedTournaments);
 
+// ✅ Organizer dashboard (query organizerId for now)
 // ✅ Organizer dashboard (for now using query organizerId)
 router.get("/mine", getMyTournaments);
 
@@ -42,6 +44,7 @@ router.get("/debug/mine", async (req, res) => {
   }
 });
 
+// ✅ Get tournament by id (for edit page)
 // ✅ Get tournament by id (for testing)
 router.get("/:id", async (req, res) => {
   try {
@@ -59,5 +62,6 @@ router.put("/:id", updateTournament);
 router.patch("/:id/publish", publishTournament);
 router.patch("/:id/unpublish", unpublishTournament);
 router.patch("/:id/close", closeTournament);
+router.delete("/:id", deleteTournament);
 
 module.exports = router;

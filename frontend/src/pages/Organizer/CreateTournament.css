@@ -1,0 +1,130 @@
+/* Page background like home */
+.ct-page {
+  min-height: 100vh;
+  background: #0b1220;
+  padding: 36px 18px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* Card */
+.ct-card {
+  width: 100%;
+  max-width: 980px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 18px;
+  padding: 22px;
+  backdrop-filter: blur(10px);
+}
+
+/* Title */
+.ct-title {
+  margin: 0 0 6px 0;
+  font-size: 34px;
+  font-weight: 900;
+  color: #e5e7eb;
+}
+
+.ct-subtitle {
+  margin: 0 0 18px 0;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* Back link */
+.ct-back {
+  float: right;
+  color: #ffd2b0;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.ct-back:hover {
+  text-decoration: underline;
+}
+
+/* Form grid */
+.ct-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 22px; /* ✅ gap between left and right columns */
+  row-gap: 18px;    /* ✅ gap between rows (THIS is what you want) */
+  margin-top: 18px;
+}
+
+/* Make a field take full width */
+.ct-full {
+  grid-column: 1 / -1;
+}
+
+/* Labels */
+.ct-label {
+  display: block;
+  margin-bottom: 10px; /* ✅ more space between label and input */
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Inputs */
+.ct-input {
+  width: 100%;
+  padding: 14px 14px; /* ✅ taller inputs */
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(2, 6, 23, 0.55);
+  color: #e5e7eb;
+  outline: none;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.ct-input:focus {
+  border-color: rgba(255, 106, 0, 0.6);
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.15);
+}
+
+/* Buttons row */
+.ct-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 14px;       /* ✅ space between buttons */
+  margin-top: 10px; /* ✅ more gap from inputs */
+}
+
+.ct-btnPrimary {
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: none;
+  background: #ff6a00;
+  color: white;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.ct-btnSecondary {
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e5e7eb;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.ct-error {
+  margin-top: 12px;
+  color: #fecaca;
+  font-weight: 800;
+}
+
+/* Responsive */
+@media (max-width: 820px) {
+  .ct-form {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+  }
+}
