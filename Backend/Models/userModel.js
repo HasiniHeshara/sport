@@ -1,11 +1,11 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
     itNumber: {
       type: String,
       required: true,
-      unique: true, // Ensures the IT number is unique for each user
+      unique: true,
     },
     name: {
       type: String,
@@ -13,11 +13,11 @@ const userSchema = new mongoose.Schema(
     },
     year: {
       type: String,
-      required: true, // (e.g., 1st year, 2nd year)
+      required: true,
     },
     faculty: {
       type: String,
-      required: true, // (e.g., Engineering, Business)
+      required: true,
     },
     contactNumber: {
       type: String,
@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true, // Email should be unique
+      unique: true,
     },
     password: {
       type: String,
@@ -34,13 +34,11 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
+      enum: ["organizer", "participant"],
       required: true,
-      enum: ['organizer', 'participant'], // Only these two roles allowed
     },
   },
   { timestamps: true }
 );
 
-const User = mongoose.model('User', userSchema);
-
-module.exports = User;
+module.exports = mongoose.model("User", userSchema);

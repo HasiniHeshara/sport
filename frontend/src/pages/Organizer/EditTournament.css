@@ -1,0 +1,14 @@
+@import "./CreateTournament.css";
+
+.et-statusRow{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.et-label{
+  color: #cbd5e1;
+  font-weight: 900;
+  font-size: 13px;
+}

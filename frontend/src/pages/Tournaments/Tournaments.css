@@ -1,0 +1,232 @@
+/* Sportix dark theme shared styles */
+
+.sp-page{
+  min-height: 100vh;
+  background: #0b1220;
+  padding: 28px 16px;
+  box-sizing: border-box;
+}
+
+.sp-container{
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.sp-head{
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.sp-title{
+  margin: 0;
+  font-size: 28px;
+  font-weight: 900;
+  color: #e5e7eb;
+}
+
+.sp-subtitle{
+  margin: 6px 0 0 0;
+  color: #94a3b8;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.sp-error{
+  margin: 12px 0 0 0;
+  color: #fecaca;
+  font-weight: 800;
+  background: rgba(239,68,68,.12);
+  border: 1px solid rgba(239,68,68,.25);
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.sp-empty{
+  margin-top: 16px;
+  color: #cbd5e1;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(148,163,184,.18);
+  padding: 14px;
+  border-radius: 14px;
+}
+
+.sp-grid{
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (min-width: 900px){
+  .sp-grid{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.sp-card{
+  background: rgba(15,23,42,.65);
+  border: 1px solid rgba(148,163,184,.18);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+.sp-cardTop{
+  display:flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.sp-cardTitle{
+  margin: 0;
+  color: #e5e7eb;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.sp-meta{
+  margin-top: 10px;
+  color: #cbd5e1;
+  font-size: 14px;
+  display:grid;
+  gap: 6px;
+}
+
+.sp-actions{
+  margin-top: 14px;
+  display:flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items:center;
+}
+
+.sp-link{
+  color: #ffd2b0;
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+.sp-btn{
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #ff6a00;
+  color: white;
+  text-decoration: none;
+  font-weight: 900;
+  border: none;
+  cursor: pointer;
+}
+
+.sp-btnDark{
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(15,23,42,.9);
+  border: 1px solid rgba(148,163,184,.25);
+  color: #e5e7eb;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.sp-btnOutline{
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(148,163,184,.22);
+  color: #e5e7eb;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sp-btnOutline:disabled,
+.sp-btnDark:disabled{
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.sp-btnDanger{
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 59, 59, .18);
+  border: 1px solid rgba(255, 59, 59, .35);
+  color: #ffd1d1;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.sp-status{
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  border: 1px solid rgba(148,163,184,.25);
+  background: rgba(255,255,255,.06);
+  color: #e5e7eb;
+  white-space: nowrap;
+}
+
+.sp-draft{ background: rgba(148,163,184,.10); }
+.sp-published{
+  background: rgba(34,197,94,.12);
+  border-color: rgba(34,197,94,.25);
+  color: #bbf7d0;
+}
+.sp-closed{
+  background: rgba(239,68,68,.12);
+  border-color: rgba(239,68,68,.25);
+  color: #fecaca;
+}
+
+/* form styles used by Create/Edit */
+.sp-formCard{
+  margin-top: 16px;
+  background: rgba(15,23,42,.65);
+  border: 1px solid rgba(148,163,184,.18);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+.sp-formGrid{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 900px){
+  .sp-formGrid{ grid-template-columns: 1fr 1fr; }
+}
+
+.sp-label{
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 6px;
+  display:block;
+}
+
+.sp-input{
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 12px;
+  background: rgba(2,6,23,.65);
+  border: 1px solid rgba(148,163,184,.22);
+  color: #e5e7eb;
+  outline: none;
+}
+
+.sp-input:focus{
+  border-color: rgba(255,106,0,.55);
+  box-shadow: 0 0 0 4px rgba(255,106,0,.12);
+}
+
+.sp-formActions{
+  margin-top: 14px;
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
