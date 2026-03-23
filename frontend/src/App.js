@@ -12,9 +12,12 @@ import AdminDashboard from "./pages/Admin/AdminDashboard";
 import OrganizerTournamentDashboard from "./pages/Organizer/OrganizerTournamentDashboard";
 import CreateTournament from "./pages/Organizer/CreateTournament";
 import EditTournament from "./pages/Organizer/EditTournament";
+import OrganizerTournamentRegistrations from "./pages/Organizer/OrganizerTournamentRegistrations";
 
 // ✅ Public tournaments list page
 import Tournaments from "./pages/Tournaments/Tournaments";
+import TournamentDetails from "./pages/Tournaments/TournamentDetails";
+import ParticipantDashboard from "./pages/Participant/ParticipantDashboard";
 
 function Placeholder({ title }) {
   return (
@@ -34,7 +37,7 @@ export default function App() {
 
         {/* Public published tournaments */}
         <Route path="/tournaments" element={<Tournaments />} />
-        <Route path="/tournaments/:id" element={<Placeholder title="Tournament Details" />} />
+        <Route path="/tournaments/:id" element={<TournamentDetails />} />
 
         {/* Basic pages */}
         <Route path="/about" element={<Placeholder title="About" />} />
@@ -48,12 +51,10 @@ export default function App() {
         <Route path="/organizer-dashboard" element={<OrganizerTournamentDashboard />} />
         <Route path="/organizer/tournaments/new" element={<CreateTournament />} />
         <Route path="/organizer/tournaments/:id/edit" element={<EditTournament />} />
+        <Route path="/organizer/tournaments/:id/registrations" element={<OrganizerTournamentRegistrations />} />
 
         {/* Participant */}
-        <Route
-          path="/participant-dashboard"
-          element={<h2 style={{ color: "white", padding: "20px" }}>Participant Dashboard</h2>}
-        />
+        <Route path="/participant-dashboard" element={<ParticipantDashboard />} />
 
         {/* Admin */}
         <Route path="/adminlogin" element={<AdminLogin />} />

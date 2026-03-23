@@ -10,7 +10,12 @@ const {
   deleteTournament,
   getPublishedTournaments,
   getMyTournaments,
+  registerTeam,
+  getMyTeamRegistration,
+  getTournamentRegistrations,
 } = require("../Controllers/tournamentController");
+
+const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 
 const Tournament = require("../Models/tournamentModel");
 
@@ -19,7 +24,7 @@ router.get("/published", getPublishedTournaments);
 
 // ✅ Organizer dashboard (query organizerId for now)
 // ✅ Organizer dashboard (for now using query organizerId)
-router.get("/mine", getMyTournaments);
+router.get("/mine", protect, authorizeRoles("organizer"), getMyTournaments);
 
 /**
  * ✅ DEBUG: show real tournament _id + length
@@ -56,12 +61,19 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// ✅ Participant team registration flow
+router.post("/:id/register-team", protect, authorizeRoles("participant"), registerTeam);
+router.get("/:id/my-registration", protect, authorizeRoles("participant"), getMyTeamRegistration);
+
+// ✅ Organizer registration management
+router.get("/:id/registrations", protect, authorizeRoles("organizer"), getTournamentRegistrations);
+
 // ✅ Organizer actions
-router.post("/", createTournament);
-router.put("/:id", updateTournament);
-router.patch("/:id/publish", publishTournament);
-router.patch("/:id/unpublish", unpublishTournament);
-router.patch("/:id/close", closeTournament);
-router.delete("/:id", deleteTournament);
+router.post("/", protect, authorizeRoles("organizer"), createTournament);
+router.put("/:id", protect, authorizeRoles("organizer"), updateTournament);
+router.patch("/:id/publish", protect, authorizeRoles("organizer"), publishTournament);
+router.patch("/:id/unpublish", protect, authorizeRoles("organizer"), unpublishTournament);
+router.patch("/:id/close", protect, authorizeRoles("organizer"), closeTournament);
+router.delete("/:id", protect, authorizeRoles("organizer"), deleteTournament);
 
 module.exports = router;

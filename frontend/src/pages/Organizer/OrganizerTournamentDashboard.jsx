@@ -108,6 +108,10 @@ export default function OrganizerTournamentDashboard() {
                       Edit
                     </Link>
 
+                    <Link className="sp-link" to={`/organizer/tournaments/${t._id}/registrations`}>
+                      Team Registrations
+                    </Link>
+
                     <button
                       className="sp-btnOutline"
                       type="button"
