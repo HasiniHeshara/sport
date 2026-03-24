@@ -22,6 +22,19 @@ export default function Register() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === "contactNumber") {
+      // allow only numbers and max 10 digits
+      const onlyNumbers = value.replace(/\D/g, "").slice(0, 10);
+      setForm((prev) => ({ ...prev, [name]: onlyNumbers }));
+      return;
+    }
+
+    if (name === "itNumber") {
+      setForm((prev) => ({ ...prev, [name]: value }));
+      return;
+    }
+
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -34,11 +47,26 @@ export default function Register() {
     if (!form.email.trim()) return "Email is required";
     if (!form.password.trim()) return "Password is required";
 
-    // simple contact number check (Sri Lanka style)
-    if (!/^\d{10}$/.test(form.contactNumber)) return "Contact number must be 10 digits";
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) return "Enter a valid email";
+    // IT number must start with IT/it and contain 8 digits
+    if (!/^IT\d{8}$/i.test(form.itNumber.trim())) {
+      return "IT Number must start with IT and include 8 digits (example: IT12345678)";
+    }
 
-    if (form.password.length < 6) return "Password must be at least 6 characters";
+    // contact number must be exactly 10 digits
+    if (!/^\d{10}$/.test(form.contactNumber)) {
+      return "Contact number must be exactly 10 digits";
+    }
+
+    // email format
+    if (!/^\S+@\S+\.\S+$/.test(form.email)) {
+      return "Enter a valid email address";
+    }
+
+    // password minimum 6 characters
+    if (form.password.length < 6) {
+      return "Password must be at least 6 characters";
+    }
+
     return null;
   };
 
@@ -55,11 +83,12 @@ export default function Register() {
     try {
       setLoading(true);
 
-      // ⚠️ Change URL if your backend route is different
-      // Example: http://localhost:5000/api/auth/register
       const res = await axios.post("http://localhost:5000/api/users/register", form);
 
-      setMsg({ type: "success", text: res.data?.message || "Registered successfully!" });
+      setMsg({
+        type: "success",
+        text: res.data?.message || "Registered successfully!",
+      });
 
       setTimeout(() => navigate("/login"), 900);
     } catch (err) {
@@ -96,7 +125,7 @@ export default function Register() {
                 name="itNumber"
                 value={form.itNumber}
                 onChange={handleChange}
-                placeholder="IT123456"
+                placeholder="IT12345678"
               />
             </div>
 
@@ -143,6 +172,7 @@ export default function Register() {
                 value={form.contactNumber}
                 onChange={handleChange}
                 placeholder="07XXXXXXXX"
+                maxLength={10}
               />
             </div>
 
