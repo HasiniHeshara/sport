@@ -9,12 +9,18 @@ const AdminDashboard = () => {
       <h2 className="admin-title">Admin Dashboard</h2>
 
       <div className="admin-card-container">
-
         <div className="admin-card" onClick={() => navigate("/adminusers")}>
           <h3>Manage Users</h3>
           <p>Add, update, or delete user details</p>
         </div>
 
+        <div
+          className="admin-card"
+          onClick={() => navigate("/equipment-management")}
+        >
+          <h3>Manage Equipment</h3>
+          <p>Add, edit, delete, and manage sports equipment records</p>
+        </div>
       </div>
     </div>
   );
