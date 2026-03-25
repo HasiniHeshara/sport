@@ -7,6 +7,7 @@ import Login from "./pages/Login/Login";
 import AdminLogin from "./pages/AdminLogin/AdminLogin";
 import AdminUsers from "./pages/AdminUser/AdminUser";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
+import EquipmentAllocationManagement from "./pages/Equipment/EquipmentAllocationManagement";
 
 // ✅ Organizer pages
 import OrganizerTournamentDashboard from "./pages/Organizer/OrganizerTournamentDashboard";
@@ -32,18 +33,13 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Home */}
         <Route path="/" element={<Home />} />
-
-        {/* Public published tournaments */}
         <Route path="/tournaments" element={<Tournaments />} />
         <Route path="/tournaments/:id" element={<TournamentDetails />} />
 
-        {/* Basic pages */}
         <Route path="/about" element={<Placeholder title="About" />} />
         <Route path="/contact" element={<Placeholder title="Contact" />} />
 
-        {/* Auth */}
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
@@ -55,11 +51,35 @@ export default function App() {
 
         {/* Participant */}
         <Route path="/participant-dashboard" element={<ParticipantDashboard />} />
+        <Route
+          path="/organizer-dashboard"
+          element={<OrganizerTournamentDashboard />}
+        />
+        <Route
+          path="/organizer/tournaments/new"
+          element={<CreateTournament />}
+        />
+        <Route
+          path="/organizer/tournaments/:id/edit"
+          element={<EditTournament />}
+        />
 
-        {/* Admin */}
+        <Route
+          path="/participant-dashboard"
+          element={
+            <h2 style={{ color: "white", padding: "20px" }}>
+              Participant Dashboard
+            </h2>
+          }
+        />
+
         <Route path="/adminlogin" element={<AdminLogin />} />
         <Route path="/adminusers" element={<AdminUsers />} />
         <Route path="/admindashboard" element={<AdminDashboard />} />
+        <Route
+          path="/equipment-management"
+          element={<EquipmentAllocationManagement />}
+        />
       </Routes>
     </BrowserRouter>
   );
