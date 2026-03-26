@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "../Tournaments/Tournaments.css";
+import logoImg from "../../assets/logo.jpg";
 
 const formatDate = (v) => String(v || "").slice(0, 10);
 const toStatusClass = (s = "") => `sp-status sp-${String(s).toLowerCase()}`;
@@ -149,9 +150,27 @@ export default function ParticipantDashboard() {
 
   return (
     <div className="sp-page">
+         <header className="home-nav">
+                <div className="brand" onClick={() => navigate("/")}>
+                  <img src={logoImg} alt="Sportix Logo" className="brand-logo" />
+                  <div className="brand-text">
+                    <h3>Sportix</h3>
+                    <p>Sports Tournament Platform</p>
+                  </div>
+                </div>
+      
+                <nav className="nav-links">
+                  <Link to="/" className="nav-link active">Home</Link>
+                  <Link to="/tournaments" className="nav-link">Tournaments</Link>
+                  <Link to="/about" className="nav-link">About</Link>
+                  <Link to="/contact" className="nav-link">Contact</Link>
+                  <Link to="/profile" className="nav-link">Profile</Link>
+                </nav>
+        </header>
       <div className="sp-container">
         <div className="sp-head">
           <div>
+            
             <h2 className="sp-title">Participant Dashboard</h2>
             <p className="sp-subtitle">Browse tournaments and submit your team registration.</p>
           </div>
