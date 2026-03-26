@@ -1,13 +1,32 @@
 const Allocation = require("../Models/allocationModel");
 const Equipment = require("../Models/equipmentModel");
 
-// Allocate equipment
+// Book equipment for a tournament
 const allocateEquipment = async (req, res) => {
   try {
-    const { equipmentId, eventName, allocatedQuantity, remarks } = req.body;
+    const {
+      equipmentId,
+      tournamentId,
+      tournamentTitle,
+      allocatedQuantity,
+      remarks,
+    } = req.body;
 
-    if (!equipmentId || !eventName || !allocatedQuantity) {
-      return res.status(400).json({ message: "All required fields must be filled" });
+    if (
+      !equipmentId ||
+      !tournamentId ||
+      !tournamentTitle ||
+      !allocatedQuantity
+    ) {
+      return res.status(400).json({
+        message: "All required fields must be filled",
+      });
+    }
+
+    if (allocatedQuantity <= 0) {
+      return res.status(400).json({
+        message: "Allocated quantity must be greater than 0",
+      });
     }
 
     const equipment = await Equipment.findById(equipmentId);
@@ -17,12 +36,15 @@ const allocateEquipment = async (req, res) => {
     }
 
     if (allocatedQuantity > equipment.availableQuantity) {
-      return res.status(400).json({ message: "Not enough equipment available" });
+      return res.status(400).json({
+        message: "Requested quantity exceeds available stock",
+      });
     }
 
     const newAllocation = new Allocation({
       equipmentId,
-      eventName,
+      tournamentId,
+      tournamentTitle,
       allocatedQuantity,
       remarks,
     });
@@ -41,17 +63,25 @@ const allocateEquipment = async (req, res) => {
 
     await equipment.save();
 
-    res.status(201).json({ message: "Equipment allocated successfully", newAllocation });
+    res.status(201).json({
+      message: "Equipment booked successfully",
+      allocation: newAllocation,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Get allocation history
-const getAllocations = async (req, res) => {
+// Get allocations for one tournament
+const getAllocationsByTournament = async (req, res) => {
   try {
-    const allocations = await Allocation.find()
-      .populate("equipmentId", "equipmentName")
+    const allocations = await Allocation.find({
+      tournamentId: req.params.tournamentId,
+    })
+      .populate(
+        "equipmentId",
+        "equipmentName totalQuantity availableQuantity status"
+      )
       .sort({ createdAt: -1 });
 
     res.status(200).json(allocations);
@@ -62,5 +92,5 @@ const getAllocations = async (req, res) => {
 
 module.exports = {
   allocateEquipment,
-  getAllocations,
+  getAllocationsByTournament,
 };

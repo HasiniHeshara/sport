@@ -2,10 +2,10 @@ const express = require("express");
 const router = express.Router();
 const {
   allocateEquipment,
-  getAllocations,
+  getAllocationsByTournament,
 } = require("../Controllers/allocationController");
 
 router.post("/", allocateEquipment);
-router.get("/", getAllocations);
+router.get("/tournament/:tournamentId", getAllocationsByTournament);
 
 module.exports = router;
