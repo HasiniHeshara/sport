@@ -142,3 +142,34 @@
   border-color: rgba(34,197,94,.25);
   color: #bbf7d0;
 }
+
+.sp-input{
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 12px;
+  background: rgba(2,6,23,.65);
+  border: 1px solid rgba(148,163,184,.22);
+  color: #e5e7eb;
+  outline: none;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* Make native date picker icon visible on dark inputs */
+.sp-input[type="date"]{
+  color-scheme: dark;
+  position: relative;
+  padding-right: 42px;
+}
+
+.sp-input[type="date"]::-webkit-calendar-picker-indicator{
+  opacity: 1;
+  cursor: pointer;
+  filter: invert(1) brightness(4);
+}
+
+.sp-input[type="date"]::-webkit-inner-spin-button,
+.sp-input[type="date"]::-webkit-clear-button{
+  display: none;
+}
