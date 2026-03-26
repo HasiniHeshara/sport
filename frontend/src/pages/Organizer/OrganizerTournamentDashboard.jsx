@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../../services/api";
 import "./OrganizerTournamentDashboard.css";
 import logoImg from "../../assets/logo.jpg";
@@ -8,11 +8,18 @@ export default function OrganizerTournamentDashboard() {
   const [tournaments, setTournaments] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [msg, setMsg] = useState("");
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
-  // uses user stored by your login page
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
+    }
+  }, []);
+
   const organizerId = user?.id || user?._id;
+  const organizerName = user?.name || "Organizer";
   const notificationsKey = `sportix_organizer_notifications_${organizerId || "organizer"}`;
 
   const formatDate = (v) => String(v || "").slice(0, 10);
@@ -37,6 +44,7 @@ export default function OrganizerTournamentDashboard() {
 
   const load = async () => {
     try {
+      setLoading(true);
       setMsg("");
 
       if (!organizerId) {
@@ -45,11 +53,12 @@ export default function OrganizerTournamentDashboard() {
         return;
       }
 
-      // current backend uses query organizerId
       const res = await api.get(`/api/tournaments/mine?organizerId=${organizerId}`);
       setTournaments(res.data || []);
     } catch (err) {
       setMsg(err.response?.data?.message || "Failed to load tournaments");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -81,42 +90,98 @@ export default function OrganizerTournamentDashboard() {
     }
   };
 
+  const totalTournaments = tournaments.length;
+  const publishedCount = tournaments.filter((t) => t.status === "Published").length;
+  const draftCount = tournaments.filter((t) => t.status === "Draft").length;
+  const closedCount = tournaments.filter((t) => t.status === "Closed").length;
+
   return (
-    <div className="sp-page">
-              <header className="home-nav">
-                <div className="brand" onClick={() => navigate("/")}>
-                  <img src={logoImg} alt="Sportix Logo" className="brand-logo" />
-                  <div className="brand-text">
-                    <h3>Sportix</h3>
-                    <p>Sports Tournament Platform</p>
-                  </div>
-                </div>
-      
-                <nav className="nav-links">
-                  <Link to="/" className="nav-link active">Home</Link>
-                  <Link to="/tournaments" className="nav-link">Tournaments</Link>
-                  <Link to="/about" className="nav-link">About</Link>
-                  <Link to="/contact" className="nav-link">Contact</Link>
-                  <Link to="/profile" className="nav-link">Profile</Link>
-                </nav>
-      
-          
-              </header>
-      <div className="sp-container">
-        <div className="sp-head">
-          <div>
-            <h2 className="sp-title">Organizer Dashboard</h2>
-            <p className="sp-subtitle">
-              Create and manage tournaments (Draft / Published / Closed)
+    <div className="org-page">
+      <div className="org-container">
+        <div className="org-hero">
+          <div className="org-heroText">
+            <p className="org-kicker">Sportix Organizer Panel</p>
+            <h1>Welcome back, {organizerName}</h1>
+            <p>
+              Manage your tournaments, review team registrations, and keep track
+              of updates from one place.
             </p>
           </div>
 
-          <Link className="sp-btn" to="/organizer/tournaments/new">
-            + Create Tournament
-          </Link>
+          <div className="org-heroActions">
+            <button type="button" className="org-btn org-btnGhost" onClick={load}>
+              {loading ? "Loading..." : "Refresh"}
+            </button>
+
+            <Link className="org-btn org-btnPrimary" to="/organizer/tournaments/new">
+              + Create Tournament
+            </Link>
+          </div>
         </div>
 
-        {msg && <p className="sp-error">{msg}</p>}
+        {msg && <div className="org-alert">{msg}</div>}
+
+        <div className="org-stats">
+          <div className="org-statCard">
+            <span className="org-statLabel">Total Tournaments</span>
+            <h3>{totalTournaments}</h3>
+          </div>
+
+          <div className="org-statCard">
+            <span className="org-statLabel">Published</span>
+            <h3>{publishedCount}</h3>
+          </div>
+
+          <div className="org-statCard">
+            <span className="org-statLabel">Draft</span>
+            <h3>{draftCount}</h3>
+          </div>
+
+          <div className="org-statCard">
+            <span className="org-statLabel">Closed</span>
+            <h3>{closedCount}</h3>
+          </div>
+        </div>
+
+        <div className="org-sectionCard">
+          <div className="org-sectionTop">
+            <div>
+              <h2>Notifications</h2>
+              <p>Latest updates related to your tournaments.</p>
+            </div>
+
+            <button
+              type="button"
+              className="org-btn org-btnOutline"
+              onClick={clearNotifications}
+            >
+              Clear
+            </button>
+          </div>
+
+          {notifications.length === 0 ? (
+            <div className="org-emptyBox">No notifications yet.</div>
+          ) : (
+            <div className="org-notificationList">
+              {notifications.map((n) => (
+                <div className="org-notificationItem" key={n.id}>
+                  <div className="org-dot" />
+                  <div>
+                    <p>{n.text}</p>
+                    <span>{formatDate(n.createdAt)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="org-sectionTop org-sectionSpacing">
+          <div>
+            <h2>My Tournaments</h2>
+            <p>View and manage all tournaments you created.</p>
+          </div>
+        </div>
 
         <div className="sp-formCard" style={{ marginBottom: 14 }}>
           <div className="sp-cardTop">
@@ -146,59 +211,71 @@ export default function OrganizerTournamentDashboard() {
         </div>
 
         {tournaments.length === 0 ? (
-          <div className="sp-empty">No tournaments yet.</div>
+          <div className="org-emptyBox">No tournaments yet.</div>
         ) : (
-          <div className="sp-grid">
+          <div className="org-grid">
             {tournaments.map((t) => {
               const status = String(t.status || "").trim();
-              const statusClass = `sp-status sp-${status.toLowerCase()}`;
+              const statusClass = `org-badge org-${status.toLowerCase()}`;
 
               return (
-                <div className="sp-card" key={t._id}>
-                  <div className="sp-cardTop">
-                    <h3 className="sp-cardTitle">{t.title}</h3>
+                <div className="org-card" key={t._id}>
+                  <div className="org-cardTop">
+                    <div>
+                      <h3>{t.title}</h3>
+                      <p className="org-sport">{t.sportType}</p>
+                    </div>
                     <span className={statusClass}>{status}</span>
                   </div>
 
-                  <div className="sp-meta">
-                    <div><b>Sport:</b> {t.sportType}</div>
-                    <div><b>Venue:</b> {t.venue}</div>
-                    <div>
-                      <b>Start:</b> {String(t.startDate).slice(0, 10)} &nbsp; | &nbsp;
-                      <b>End:</b> {String(t.endDate).slice(0, 10)}
+                  <div className="org-infoGrid">
+                    <div className="org-infoItem">
+                      <span>Venue</span>
+                      <strong>{t.venue}</strong>
                     </div>
-                    <div>
-                      <b>Deadline:</b> {String(t.registrationDeadline).slice(0, 10)} &nbsp; | &nbsp;
-                      <b>Team Limit:</b> {t.teamLimit} &nbsp; | &nbsp;
-                      <b>Fee:</b> {t.registrationFee}
+
+                    <div className="org-infoItem">
+                      <span>Team Limit</span>
+                      <strong>{t.teamLimit}</strong>
+                    </div>
+
+                    <div className="org-infoItem">
+                      <span>Start Date</span>
+                      <strong>{formatDate(t.startDate)}</strong>
+                    </div>
+
+                    <div className="org-infoItem">
+                      <span>End Date</span>
+                      <strong>{formatDate(t.endDate)}</strong>
+                    </div>
+
+                    <div className="org-infoItem">
+                      <span>Deadline</span>
+                      <strong>{formatDate(t.registrationDeadline)}</strong>
+                    </div>
+
+                    <div className="org-infoItem">
+                      <span>Fee</span>
+                      <strong>{t.registrationFee}</strong>
                     </div>
                   </div>
 
-                  <div className="sp-actions">
-                    <Link className="sp-link" to={`/organizer/tournaments/${t._id}/edit`}>
+                  <div className="org-actions">
+                    <Link className="org-linkBtn" to={`/organizer/tournaments/${t._id}/edit`}>
                       Edit
                     </Link>
 
-                    <Link className="sp-link" to={`/organizer/tournaments/${t._id}/registrations`}>
+                    <Link
+                      className="org-linkBtn org-linkSecondary"
+                      to={`/organizer/tournaments/${t._id}/registrations`}
+                    >
                       Team Registrations
                     </Link>
+                  </div>
 
-                    {status === "Published" && (
-                      <button
-                        type="button"
-                        className="sp-btnOutline"
-                        onClick={() =>
-                          navigate(`/organizer/tournaments/${t._id}/book-equipment`, {
-                            state: { tournament: t },
-                          })
-                        }
-                      >
-                        Book Equipment
-                      </button>
-                    )}
-
+                  <div className="org-actions org-actionsWrap">
                     <button
-                      className="sp-btnOutline"
+                      className="org-btn org-btnOutline"
                       type="button"
                       onClick={() => doAction(t._id, "publish")}
                       disabled={status === "Published" || status === "Closed"}
@@ -207,7 +284,7 @@ export default function OrganizerTournamentDashboard() {
                     </button>
 
                     <button
-                      className="sp-btnOutline"
+                      className="org-btn org-btnOutline"
                       type="button"
                       onClick={() => doAction(t._id, "unpublish")}
                       disabled={status === "Draft" || status === "Closed"}
@@ -216,7 +293,7 @@ export default function OrganizerTournamentDashboard() {
                     </button>
 
                     <button
-                      className="sp-btnDark"
+                      className="org-btn org-btnDark"
                       type="button"
                       onClick={() => doAction(t._id, "close")}
                       disabled={status === "Closed"}
@@ -225,7 +302,7 @@ export default function OrganizerTournamentDashboard() {
                     </button>
 
                     <button
-                      className="sp-btnDanger"
+                      className="org-btn org-btnDanger"
                       type="button"
                       onClick={() => deleteTournament(t._id)}
                     >

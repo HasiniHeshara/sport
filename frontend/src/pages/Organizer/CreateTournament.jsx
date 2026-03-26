@@ -7,7 +7,7 @@ export default function CreateTournament() {
   const navigate = useNavigate();
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const organizerId = user?.id || user?._id; // ✅ uses logged-in user
+  const organizerId = user?.id || user?._id;
 
   const [form, setForm] = useState({
     organizerId: organizerId || "",
@@ -24,7 +24,8 @@ export default function CreateTournament() {
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const onChange = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+  const onChange = (e) =>
+    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   const submit = async (e) => {
     e.preventDefault();
@@ -122,38 +123,47 @@ export default function CreateTournament() {
 
           <div>
             <label className="ct-label">Registration Deadline</label>
-            <input
-              className="ct-input"
-              name="registrationDeadline"
-              type="date"
-              value={form.registrationDeadline}
-              onChange={onChange}
-              required
-            />
+            <div className="ct-dateWrap">
+              <input
+                className="ct-input ct-dateInput"
+                name="registrationDeadline"
+                type="date"
+                value={form.registrationDeadline}
+                onChange={onChange}
+                required
+              />
+              <span className="ct-dateIcon">📅</span>
+            </div>
           </div>
 
           <div>
             <label className="ct-label">Start Date</label>
-            <input
-              className="ct-input"
-              name="startDate"
-              type="date"
-              value={form.startDate}
-              onChange={onChange}
-              required
-            />
+            <div className="ct-dateWrap">
+              <input
+                className="ct-input ct-dateInput"
+                name="startDate"
+                type="date"
+                value={form.startDate}
+                onChange={onChange}
+                required
+              />
+              <span className="ct-dateIcon">📅</span>
+            </div>
           </div>
 
           <div>
             <label className="ct-label">End Date</label>
-            <input
-              className="ct-input"
-              name="endDate"
-              type="date"
-              value={form.endDate}
-              onChange={onChange}
-              required
-            />
+            <div className="ct-dateWrap">
+              <input
+                className="ct-input ct-dateInput"
+                name="endDate"
+                type="date"
+                value={form.endDate}
+                onChange={onChange}
+                required
+              />
+              <span className="ct-dateIcon">📅</span>
+            </div>
           </div>
 
           <div className="ct-actions">

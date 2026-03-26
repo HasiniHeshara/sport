@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import api from "../../services/api";
-import "../Tournaments/Tournaments.css"; // reuse theme
+import "../Tournaments/Tournaments.css";
 
 const toISO = (v) => {
   if (!v) return "";
   try {
-    return new Date(v).toISOString().slice(0, 10); // ✅ YYYY-MM-DD
+    return new Date(v).toISOString().slice(0, 10);
   } catch {
     return String(v).slice(0, 10);
   }
@@ -81,7 +81,7 @@ export default function EditTournament() {
     try {
       await api.put(`/api/tournaments/${id}`, {
         ...form,
-        organizerId, // ✅ helps backend if you validate owner
+        organizerId,
         teamLimit: Number(form.teamLimit),
         registrationFee: Number(form.registrationFee),
       });
@@ -127,42 +127,105 @@ export default function EditTournament() {
             <div className="sp-formGrid">
               <div>
                 <label className="sp-label">Sport Type</label>
-                <input className="sp-input" name="sportType" value={form.sportType} onChange={onChange} required />
+                <input
+                  className="sp-input"
+                  name="sportType"
+                  value={form.sportType}
+                  onChange={onChange}
+                  required
+                />
               </div>
 
               <div>
                 <label className="sp-label">Title</label>
-                <input className="sp-input" name="title" value={form.title} onChange={onChange} required />
+                <input
+                  className="sp-input"
+                  name="title"
+                  value={form.title}
+                  onChange={onChange}
+                  required
+                />
               </div>
 
               <div>
                 <label className="sp-label">Venue</label>
-                <input className="sp-input" name="venue" value={form.venue} onChange={onChange} required />
+                <input
+                  className="sp-input"
+                  name="venue"
+                  value={form.venue}
+                  onChange={onChange}
+                  required
+                />
               </div>
 
               <div>
                 <label className="sp-label">Team Limit</label>
-                <input className="sp-input" name="teamLimit" type="number" min="1" value={form.teamLimit} onChange={onChange} required />
+                <input
+                  className="sp-input"
+                  name="teamLimit"
+                  type="number"
+                  min="1"
+                  value={form.teamLimit}
+                  onChange={onChange}
+                  required
+                />
               </div>
 
               <div>
                 <label className="sp-label">Registration Fee</label>
-                <input className="sp-input" name="registrationFee" type="number" min="0" value={form.registrationFee} onChange={onChange} />
+                <input
+                  className="sp-input"
+                  name="registrationFee"
+                  type="number"
+                  min="0"
+                  value={form.registrationFee}
+                  onChange={onChange}
+                />
               </div>
 
               <div>
                 <label className="sp-label">Registration Deadline</label>
-                <input className="sp-input" name="registrationDeadline" type="date" value={form.registrationDeadline} onChange={onChange} required />
+                <div className="sp-dateWrap">
+                  <input
+                    className="sp-input sp-dateInput"
+                    name="registrationDeadline"
+                    type="date"
+                    value={form.registrationDeadline}
+                    onChange={onChange}
+                    required
+                  />
+                  <span className="sp-dateIcon">📅</span>
+                </div>
               </div>
 
               <div>
                 <label className="sp-label">Start Date</label>
-                <input className="sp-input" name="startDate" type="date" value={form.startDate} onChange={onChange} required />
+                <div className="sp-dateWrap">
+                  <input
+                    className="sp-input sp-dateInput"
+                    name="startDate"
+                    type="date"
+                    value={form.startDate}
+                    onChange={onChange}
+                    required
+                  />
+                  <span className="sp-dateIcon">📅</span>
+                </div>
               </div>
 
               <div>
                 <label className="sp-label">End Date</label>
-                <input className="sp-input" name="endDate" type="date" value={form.endDate} onChange={onChange} required />
+                <div className="sp-dateWrap">
+                  <input
+                    className="sp-input sp-dateInput"
+                    name="endDate"
+                    type="date"
+                    value={form.endDate}
+                    onChange={onChange}
+                    required
+                  />
+                  <span className="sp-dateIcon">📅</span>
+                </div>
               </div>
             </div>
 
@@ -170,7 +233,11 @@ export default function EditTournament() {
               <button className="sp-btn" type="submit">
                 Save Changes
               </button>
-              <button className="sp-btnDark" type="button" onClick={() => navigate("/organizer-dashboard")}>
+              <button
+                className="sp-btnDark"
+                type="button"
+                onClick={() => navigate("/organizer-dashboard")}
+              >
                 Cancel
               </button>
             </div>
