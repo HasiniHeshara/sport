@@ -1,11 +1,20 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "./Tournaments.css";
 
 export default function Tournaments() {
   const [tournaments, setTournaments] = useState([]);
   const [msg, setMsg] = useState("");
+  const navigate = useNavigate();
+
+  const user = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
+    }
+  }, []);
 
   const load = async () => {
     try {
@@ -20,6 +29,15 @@ export default function Tournaments() {
   useEffect(() => {
     load();
   }, []);
+
+  const handleViewDetails = (id) => {
+    if (user?.role !== "participant") {
+      alert("Please register first as a participant to register a team.");
+      return; // stop page opening
+    }
+
+    navigate(`/tournaments/${id}`);
+  };
 
   return (
     <div className="sp-page">
@@ -65,9 +83,13 @@ export default function Tournaments() {
                 </div>
 
                 <div className="sp-actions">
-                  <Link className="sp-link" to={`/tournaments/${t._id}`}>
-                    View Details →
-                  </Link>
+                  <button
+                    type="button"
+                    className="sp-btn"
+                    onClick={() => handleViewDetails(t._id)}
+                  >
+                    View Details
+                  </button>
                 </div>
               </div>
             ))}
