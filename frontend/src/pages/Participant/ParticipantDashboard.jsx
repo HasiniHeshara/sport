@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "../Tournaments/Tournaments.css";
 
@@ -70,7 +70,6 @@ export default function ParticipantDashboard() {
       previous = {};
     }
 
-    // Skip notifications for very first load where there is no baseline.
     if (!previous || Object.keys(previous).length === 0) {
       saveCurrentStatuses(items);
       return;
@@ -245,10 +244,6 @@ export default function ParticipantDashboard() {
                     >
                       {actionLabel}
                     </button>
-
-                    <Link className="sp-link" to={`/tournaments/${t._id}`}>
-                      View Details
-                    </Link>
                   </div>
                 </div>
               );

@@ -5,12 +5,34 @@ import "./OrganizerTournamentDashboard.css";
 
 export default function OrganizerTournamentDashboard() {
   const [tournaments, setTournaments] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [msg, setMsg] = useState("");
   const navigate = useNavigate();
 
   // uses user stored by your login page
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const organizerId = user?.id || user?._id;
+  const notificationsKey = `sportix_organizer_notifications_${organizerId || "organizer"}`;
+
+  const formatDate = (v) => String(v || "").slice(0, 10);
+
+  const getStoredNotifications = () => {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(notificationsKey) || "[]");
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const saveNotifications = (items) => {
+    localStorage.setItem(notificationsKey, JSON.stringify(items));
+    setNotifications(items);
+  };
+
+  const clearNotifications = () => {
+    saveNotifications([]);
+  };
 
   const load = async () => {
     try {
@@ -31,6 +53,7 @@ export default function OrganizerTournamentDashboard() {
   };
 
   useEffect(() => {
+    setNotifications(getStoredNotifications());
     load();
   }, []);
 
@@ -74,6 +97,33 @@ export default function OrganizerTournamentDashboard() {
         </div>
 
         {msg && <p className="sp-error">{msg}</p>}
+
+        <div className="sp-formCard" style={{ marginBottom: 14 }}>
+          <div className="sp-cardTop">
+            <h3 className="sp-cardTitle">Notifications</h3>
+            <button
+              type="button"
+              className="sp-btnOutline"
+              onClick={clearNotifications}
+            >
+              Clear
+            </button>
+          </div>
+
+          {notifications.length === 0 ? (
+            <div className="sp-empty" style={{ marginTop: 10 }}>
+              No notifications yet.
+            </div>
+          ) : (
+            <div className="sp-meta" style={{ marginTop: 10 }}>
+              {notifications.map((n) => (
+                <div key={n.id}>
+                  <b>{formatDate(n.createdAt)}:</b> {n.text}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {tournaments.length === 0 ? (
           <div className="sp-empty">No tournaments yet.</div>
