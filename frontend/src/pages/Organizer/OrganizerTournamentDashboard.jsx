@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "./OrganizerTournamentDashboard.css";
 import logoImg from "../../assets/logo.jpg";
@@ -9,6 +9,7 @@ export default function OrganizerTournamentDashboard() {
   const [notifications, setNotifications] = useState([]);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const user = useMemo(() => {
     try {
@@ -97,6 +98,23 @@ export default function OrganizerTournamentDashboard() {
 
   return (
     <div className="org-page">
+      <header className="home-nav">
+                      <div className="brand" onClick={() => navigate("/")}>
+                        <img src={logoImg} alt="Sportix Logo" className="brand-logo" />
+                        <div className="brand-text">
+                          <h3>Sportix</h3>
+                          <p>Sports Tournament Platform</p>
+                        </div>
+                      </div>
+            
+                      <nav className="nav-links">
+                        <Link to="/" className="nav-link active">Home</Link>
+                        <Link to="/tournaments" className="nav-link">Tournaments</Link>
+                        <Link to="/about" className="nav-link">About</Link>
+                        <Link to="/contact" className="nav-link">Contact</Link>
+                        <Link to="/profile" className="nav-link">Profile</Link>
+                      </nav>
+              </header>
       <div className="org-container">
         <div className="org-hero">
           <div className="org-heroText">
