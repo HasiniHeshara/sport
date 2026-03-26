@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
 import "./OrganizerTournamentDashboard.css";
+import logoImg from "../../assets/logo.jpg";
 
 export default function OrganizerTournamentDashboard() {
   const [tournaments, setTournaments] = useState([]);
