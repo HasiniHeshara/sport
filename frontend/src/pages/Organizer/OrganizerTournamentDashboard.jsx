@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "./OrganizerTournamentDashboard.css";
 
@@ -7,6 +7,7 @@ export default function OrganizerTournamentDashboard() {
   const [tournaments, setTournaments] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [msg, setMsg] = useState("");
+  const navigate = useNavigate();
 
   // uses user stored by your login page
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -161,6 +162,20 @@ export default function OrganizerTournamentDashboard() {
                     <Link className="sp-link" to={`/organizer/tournaments/${t._id}/registrations`}>
                       Team Registrations
                     </Link>
+
+                    {status === "Published" && (
+                      <button
+                        type="button"
+                        className="sp-btnOutline"
+                        onClick={() =>
+                          navigate(`/organizer/tournaments/${t._id}/book-equipment`, {
+                            state: { tournament: t },
+                          })
+                        }
+                      >
+                        Book Equipment
+                      </button>
+                    )}
 
                     <button
                       className="sp-btnOutline"
