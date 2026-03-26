@@ -29,6 +29,35 @@ const addParticipantNotification = (user, text) => {
   }
 };
 
+const addOrganizerNotification = (tournament, text) => {
+  const organizerId =
+    tournament?.organizerId?._id ||
+    tournament?.organizerId ||
+    tournament?.createdBy?._id ||
+    tournament?.createdBy ||
+    "organizer";
+
+  const key = `sportix_organizer_notifications_${organizerId}`;
+
+  try {
+    const existing = JSON.parse(localStorage.getItem(key) || "[]");
+    const safeExisting = Array.isArray(existing) ? existing : [];
+    const next = [
+      {
+        id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
+        text,
+        createdAt: new Date().toISOString(),
+        tournamentId: tournament?._id || "",
+      },
+      ...safeExisting,
+    ].slice(0, 20);
+
+    localStorage.setItem(key, JSON.stringify(next));
+  } catch {
+    // Ignore storage failures
+  }
+};
+
 export default function TournamentDetails() {
   const { id } = useParams();
   const [tournament, setTournament] = useState(null);
@@ -67,7 +96,10 @@ export default function TournamentDetails() {
           setForm({
             teamName: reg.teamName || "",
             contactNumber: reg.contactNumber || user?.contactNumber || "",
-            members: Array.isArray(reg.members) && reg.members.length > 0 ? reg.members : [{ ...emptyMember }],
+            members:
+              Array.isArray(reg.members) && reg.members.length > 0
+                ? reg.members
+                : [{ ...emptyMember }],
           });
         } catch (err) {
           if (err.response?.status !== 404) {
@@ -91,7 +123,10 @@ export default function TournamentDetails() {
     if (!tournament) {
       return true;
     }
-    return new Date() > new Date(tournament.registrationDeadline) || tournament.status !== "Published";
+    return (
+      new Date() > new Date(tournament.registrationDeadline) ||
+      tournament.status !== "Published"
+    );
   }, [tournament]);
 
   const canResubmitRejected = registration?.status === "Rejected" && !isClosed;
@@ -106,7 +141,10 @@ export default function TournamentDetails() {
   };
 
   const addMember = () => {
-    setForm((prev) => ({ ...prev, members: [...prev.members, { ...emptyMember }] }));
+    setForm((prev) => ({
+      ...prev,
+      members: [...prev.members, { ...emptyMember }],
+    }));
   };
 
   const removeMember = (index) => {
@@ -130,12 +168,16 @@ export default function TournamentDetails() {
       return "Contact number is required";
     }
 
-    const validMembers = form.members.filter((m) => m.name.trim() && m.itNumber.trim());
+    const validMembers = form.members.filter(
+      (m) => m.name.trim() && m.itNumber.trim()
+    );
     if (validMembers.length === 0) {
       return "At least one valid team member is required";
     }
 
-    const itSet = new Set(validMembers.map((m) => m.itNumber.trim().toLowerCase()));
+    const itSet = new Set(
+      validMembers.map((m) => m.itNumber.trim().toLowerCase())
+    );
     if (itSet.size !== validMembers.length) {
       return "Duplicate member IT numbers are not allowed";
     }
@@ -171,16 +213,36 @@ export default function TournamentDetails() {
       if (registration?.status === "Rejected") {
         await api.put(`/api/registrations/${registration._id}`, payload);
         setMsg("Team registration updated and sent to tournament manager for approval.");
+
         addParticipantNotification(
           user,
-          `Team registration resubmitted for ${tournamentResName(tournament)} and sent for manager approval`
+          `Team registration resubmitted for ${tournamentResName(
+            tournament
+          )} and sent for manager approval`
+        );
+
+        addOrganizerNotification(
+          tournament,
+          `${payload.teamName} resubmitted registration for ${tournamentResName(
+            tournament
+          )}.`
         );
       } else {
         await api.post(`/api/tournaments/${id}/register-team`, payload);
         setMsg("Team registration submitted and sent to tournament manager for approval.");
+
         addParticipantNotification(
           user,
-          `Team registration submitted for ${tournamentResName(tournament)} and sent for manager approval`
+          `Team registration submitted for ${tournamentResName(
+            tournament
+          )} and sent for manager approval`
+        );
+
+        addOrganizerNotification(
+          tournament,
+          `${payload.teamName} submitted a new registration for ${tournamentResName(
+            tournament
+          )}.`
         );
       }
 
@@ -207,7 +269,9 @@ export default function TournamentDetails() {
       <div className="sp-page">
         <div className="sp-container">
           <p className="sp-error">Tournament not found.</p>
-          <Link to="/participant-dashboard" className="sp-link">Back to Dashboard</Link>
+          <Link to="/participant-dashboard" className="sp-link">
+            Back to Dashboard
+          </Link>
         </div>
       </div>
     );
@@ -221,7 +285,9 @@ export default function TournamentDetails() {
             <h2 className="sp-title">{tournament.title}</h2>
             <p className="sp-subtitle">Register your team before the deadline.</p>
           </div>
-          <Link className="sp-link" to="/participant-dashboard">Back to Dashboard</Link>
+          <Link className="sp-link" to="/participant-dashboard">
+            Back to Dashboard
+          </Link>
         </div>
 
         {msg && <p className="sp-error">{msg}</p>}
@@ -230,8 +296,14 @@ export default function TournamentDetails() {
           <div className="sp-meta">
             <div><b>Sport:</b> {tournament.sportType}</div>
             <div><b>Venue:</b> {tournament.venue}</div>
-            <div><b>Start:</b> {formatDate(tournament.startDate)} | <b>End:</b> {formatDate(tournament.endDate)}</div>
-            <div><b>Registration Deadline:</b> {formatDate(tournament.registrationDeadline)}</div>
+            <div>
+              <b>Start:</b> {formatDate(tournament.startDate)} | <b>End:</b>{" "}
+              {formatDate(tournament.endDate)}
+            </div>
+            <div>
+              <b>Registration Deadline:</b>{" "}
+              {formatDate(tournament.registrationDeadline)}
+            </div>
             <div><b>Team Limit:</b> {tournament.teamLimit}</div>
           </div>
         </div>
@@ -247,10 +319,12 @@ export default function TournamentDetails() {
           </div>
         )}
 
-        {(canNewRegister || canResubmitRejected) ? (
+        {canNewRegister || canResubmitRejected ? (
           <div className="sp-formCard">
             <h3 className="sp-cardTitle" style={{ marginBottom: 12 }}>
-              {registration?.status === "Rejected" ? "Update Team Registration" : "Team Registration"}
+              {registration?.status === "Rejected"
+                ? "Update Team Registration"
+                : "Team Registration"}
             </h3>
 
             <form onSubmit={submit}>
@@ -260,7 +334,9 @@ export default function TournamentDetails() {
                   <input
                     className="sp-input"
                     value={form.teamName}
-                    onChange={(e) => setForm((prev) => ({ ...prev, teamName: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, teamName: e.target.value }))
+                    }
                     required
                   />
                 </div>
@@ -270,14 +346,22 @@ export default function TournamentDetails() {
                   <input
                     className="sp-input"
                     value={form.contactNumber}
-                    onChange={(e) => setForm((prev) => ({ ...prev, contactNumber: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        contactNumber: e.target.value,
+                      }))
+                    }
                     required
                   />
                 </div>
               </div>
 
               <div style={{ marginTop: 14 }}>
-                <h4 className="sp-cardTitle" style={{ fontSize: 16 }}>Team Members</h4>
+                <h4 className="sp-cardTitle" style={{ fontSize: 16 }}>
+                  Team Members
+                </h4>
+
                 {form.members.map((m, index) => (
                   <div className="sp-formGrid" key={index} style={{ marginTop: 8 }}>
                     <div>
@@ -295,7 +379,9 @@ export default function TournamentDetails() {
                       <input
                         className="sp-input"
                         value={m.itNumber}
-                        onChange={(e) => setMember(index, "itNumber", e.target.value)}
+                        onChange={(e) =>
+                          setMember(index, "itNumber", e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -305,7 +391,9 @@ export default function TournamentDetails() {
                       <input
                         className="sp-input"
                         value={m.contactNumber}
-                        onChange={(e) => setMember(index, "contactNumber", e.target.value)}
+                        onChange={(e) =>
+                          setMember(index, "contactNumber", e.target.value)
+                        }
                       />
                     </div>
 

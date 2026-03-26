@@ -105,12 +105,6 @@
   align-items:center;
 }
 
-.sp-link{
-  color: #ffd2b0;
-  font-weight: 800;
-  text-decoration: underline;
-}
-
 .sp-btn{
   padding: 10px 14px;
   border-radius: 12px;
@@ -132,32 +126,6 @@
   cursor: pointer;
 }
 
-.sp-btnOutline{
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(148,163,184,.22);
-  color: #e5e7eb;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.sp-btnOutline:disabled,
-.sp-btnDark:disabled{
-  opacity: .45;
-  cursor: not-allowed;
-}
-
-.sp-btnDanger{
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(255, 59, 59, .18);
-  border: 1px solid rgba(255, 59, 59, .35);
-  color: #ffd1d1;
-  font-weight: 900;
-  cursor: pointer;
-}
-
 .sp-status{
   padding: 6px 10px;
   border-radius: 999px;
@@ -169,64 +137,8 @@
   white-space: nowrap;
 }
 
-.sp-draft{ background: rgba(148,163,184,.10); }
 .sp-published{
   background: rgba(34,197,94,.12);
   border-color: rgba(34,197,94,.25);
   color: #bbf7d0;
-}
-.sp-closed{
-  background: rgba(239,68,68,.12);
-  border-color: rgba(239,68,68,.25);
-  color: #fecaca;
-}
-
-/* form styles used by Create/Edit */
-.sp-formCard{
-  margin-top: 16px;
-  background: rgba(15,23,42,.65);
-  border: 1px solid rgba(148,163,184,.18);
-  border-radius: 16px;
-  padding: 18px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.35);
-}
-
-.sp-formGrid{
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-@media (min-width: 900px){
-  .sp-formGrid{ grid-template-columns: 1fr 1fr; }
-}
-
-.sp-label{
-  color: #cbd5e1;
-  font-size: 13px;
-  font-weight: 800;
-  margin-bottom: 6px;
-  display:block;
-}
-
-.sp-input{
-  width: 100%;
-  padding: 12px 12px;
-  border-radius: 12px;
-  background: rgba(2,6,23,.65);
-  border: 1px solid rgba(148,163,184,.22);
-  color: #e5e7eb;
-  outline: none;
-}
-
-.sp-input:focus{
-  border-color: rgba(255,106,0,.55);
-  box-shadow: 0 0 0 4px rgba(255,106,0,.12);
-}
-
-.sp-formActions{
-  margin-top: 14px;
-  display:flex;
-  gap: 10px;
-  flex-wrap: wrap;
 }
