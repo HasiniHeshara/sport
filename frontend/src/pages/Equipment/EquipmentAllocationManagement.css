@@ -152,6 +152,7 @@
   padding: 14px 12px;
   border-bottom: 1px solid #24305f;
   text-align: left;
+  vertical-align: top;
 }
 
 .equipment-table th {
@@ -181,6 +182,21 @@
   color: #fecaca;
 }
 
+.status-returned {
+  background: #14532d;
+  color: #bbf7d0;
+}
+
+.status-damaged {
+  background: #78350f;
+  color: #fde68a;
+}
+
+.status-lost {
+  background: #7f1d1d;
+  color: #fecaca;
+}
+
 .no-data {
   text-align: center;
   color: #d7ddff;
@@ -201,4 +217,36 @@
 .booking-subtitle {
   color: #d7ddff;
   margin-bottom: 18px;
+}
+
+.return-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 180px;
+}
+
+.return-box input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #2f3c74;
+  background: #091231;
+  color: white;
+  font-size: 13px;
+  outline: none;
+}
+
+.return-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.done-text {
+  color: #86efac;
+  font-weight: 600;
 }

@@ -22,9 +22,27 @@ const allocationSchema = new mongoose.Schema(
       required: true,
       min: 1,
     },
+    returnedQuantity: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    damagedQuantity: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    lostQuantity: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     allocatedDate: {
       type: Date,
       default: Date.now,
+    },
+    returnedDate: {
+      type: Date,
     },
     status: {
       type: String,
