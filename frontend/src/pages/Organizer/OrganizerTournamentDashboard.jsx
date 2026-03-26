@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "./OrganizerTournamentDashboard.css";
+import logoImg from "../../assets/logo.jpg";
 
 export default function OrganizerTournamentDashboard() {
   const [tournaments, setTournaments] = useState([]);
@@ -59,6 +60,25 @@ export default function OrganizerTournamentDashboard() {
 
   return (
     <div className="sp-page">
+              <header className="home-nav">
+                <div className="brand" onClick={() => navigate("/")}>
+                  <img src={logoImg} alt="Sportix Logo" className="brand-logo" />
+                  <div className="brand-text">
+                    <h3>Sportix</h3>
+                    <p>Sports Tournament Platform</p>
+                  </div>
+                </div>
+      
+                <nav className="nav-links">
+                  <Link to="/" className="nav-link active">Home</Link>
+                  <Link to="/tournaments" className="nav-link">Tournaments</Link>
+                  <Link to="/about" className="nav-link">About</Link>
+                  <Link to="/contact" className="nav-link">Contact</Link>
+                  <Link to="/profile" className="nav-link">Profile</Link>
+                </nav>
+      
+          
+              </header>
       <div className="sp-container">
         <div className="sp-head">
           <div>
