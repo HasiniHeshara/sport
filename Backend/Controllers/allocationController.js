@@ -90,7 +90,21 @@ const getAllocationsByTournament = async (req, res) => {
   }
 };
 
+// Get all booking details for admin
+const getAllAllocations = async (req, res) => {
+  try {
+    const allocations = await Allocation.find()
+      .populate("equipmentId", "equipmentName")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(allocations);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   allocateEquipment,
   getAllocationsByTournament,
+  getAllAllocations,
 };

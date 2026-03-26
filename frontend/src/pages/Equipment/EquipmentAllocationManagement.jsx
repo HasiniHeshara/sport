@@ -13,6 +13,7 @@ const EquipmentAllocationManagement = () => {
 
   const [formData, setFormData] = useState(initialForm);
   const [equipmentList, setEquipmentList] = useState([]);
+  const [bookingList, setBookingList] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({});
@@ -28,8 +29,18 @@ const EquipmentAllocationManagement = () => {
     }
   };
 
+  const fetchBookings = async () => {
+    try {
+      const res = await api.get("/api/allocations");
+      setBookingList(res.data);
+    } catch (error) {
+      console.error("Error fetching booking details:", error);
+    }
+  };
+
   useEffect(() => {
     fetchEquipment();
+    fetchBookings();
   }, []);
 
   const validateForm = () => {
@@ -328,6 +339,56 @@ const EquipmentAllocationManagement = () => {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="booking-section">
+        <h2 className="booking-title">Equipment Booking Details</h2>
+        <p className="booking-subtitle">
+          View tournament equipment bookings made by organizers.
+        </p>
+
+        <div className="table-wrapper">
+          <table className="equipment-table">
+            <thead>
+              <tr>
+                <th>Tournament</th>
+                <th>Equipment</th>
+                <th>Booked Quantity</th>
+                <th>Status</th>
+                <th>Booked Date</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bookingList.length > 0 ? (
+                bookingList.map((booking) => (
+                  <tr key={booking._id}>
+                    <td>{booking.tournamentTitle}</td>
+                    <td>{booking.equipmentId?.equipmentName || "-"}</td>
+                    <td>{booking.allocatedQuantity}</td>
+                    <td>
+                      <span className="status-badge status-available">
+                        {booking.status}
+                      </span>
+                    </td>
+                    <td>
+                      {booking.allocatedDate
+                        ? new Date(booking.allocatedDate).toLocaleDateString()
+                        : "-"}
+                    </td>
+                    <td>{booking.remarks || "-"}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="no-data">
+                    No equipment bookings yet
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

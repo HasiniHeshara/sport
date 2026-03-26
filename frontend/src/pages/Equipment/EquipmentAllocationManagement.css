@@ -186,3 +186,19 @@
   color: #d7ddff;
   padding: 20px 0;
 }
+
+.booking-section {
+  max-width: 1200px;
+  margin: 40px auto 0;
+}
+
+.booking-title {
+  font-size: 28px;
+  margin-bottom: 8px;
+  color: white;
+}
+
+.booking-subtitle {
+  color: #d7ddff;
+  margin-bottom: 18px;
+}
