@@ -183,6 +183,33 @@ export default function OrganizerTournamentDashboard() {
           </div>
         </div>
 
+        <div className="sp-formCard" style={{ marginBottom: 14 }}>
+          <div className="sp-cardTop">
+            <h3 className="sp-cardTitle">Notifications</h3>
+            <button
+              type="button"
+              className="sp-btnOutline"
+              onClick={clearNotifications}
+            >
+              Clear
+            </button>
+          </div>
+
+          {notifications.length === 0 ? (
+            <div className="sp-empty" style={{ marginTop: 10 }}>
+              No notifications yet.
+            </div>
+          ) : (
+            <div className="sp-meta" style={{ marginTop: 10 }}>
+              {notifications.map((n) => (
+                <div key={n.id}>
+                  <b>{formatDate(n.createdAt)}:</b> {n.text}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {tournaments.length === 0 ? (
           <div className="org-emptyBox">No tournaments yet.</div>
         ) : (
