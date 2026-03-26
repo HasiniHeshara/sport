@@ -18,6 +18,7 @@ const EquipmentAllocationManagement = () => {
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
+  const [returnData, setReturnData] = useState({});
 
   const fetchEquipment = async () => {
     try {
@@ -194,6 +195,36 @@ const EquipmentAllocationManagement = () => {
     doc.save("equipment-details-report.pdf");
   };
 
+  const handleReturnChange = (id, field, value) => {
+    setReturnData((prev) => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleReturnSubmit = async (bookingId) => {
+    const data = returnData[bookingId] || {};
+
+    try {
+      await api.put(`/api/allocations/${bookingId}/return`, {
+        returnedQuantity: Number(data.returnedQuantity || 0),
+        damagedQuantity: Number(data.damagedQuantity || 0),
+        lostQuantity: Number(data.lostQuantity || 0),
+        remarks: data.remarks || "",
+      });
+
+      setMessage("Equipment return status updated successfully");
+      fetchEquipment();
+      fetchBookings();
+    } catch (error) {
+      console.error("Return update failed:", error);
+      setMessage(error.response?.data?.message || "Failed to update return");
+    }
+  };
+
   const filteredEquipment = equipmentList.filter((item) =>
     item.equipmentName.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -353,10 +384,11 @@ const EquipmentAllocationManagement = () => {
               <tr>
                 <th>Tournament</th>
                 <th>Equipment</th>
-                <th>Booked Quantity</th>
+                <th>Booked Qty</th>
                 <th>Status</th>
                 <th>Booked Date</th>
                 <th>Remarks</th>
+                <th>Return / Damage / Lost</th>
               </tr>
             </thead>
             <tbody>
@@ -367,7 +399,17 @@ const EquipmentAllocationManagement = () => {
                     <td>{booking.equipmentId?.equipmentName || "-"}</td>
                     <td>{booking.allocatedQuantity}</td>
                     <td>
-                      <span className="status-badge status-available">
+                      <span
+                        className={`status-badge ${
+                          booking.status === "Returned"
+                            ? "status-returned"
+                            : booking.status === "Damaged"
+                            ? "status-damaged"
+                            : booking.status === "Lost"
+                            ? "status-lost"
+                            : "status-available"
+                        }`}
+                      >
                         {booking.status}
                       </span>
                     </td>
@@ -377,11 +419,81 @@ const EquipmentAllocationManagement = () => {
                         : "-"}
                     </td>
                     <td>{booking.remarks || "-"}</td>
+                    <td>
+                      {booking.status === "Allocated" ? (
+                        <div className="return-box">
+                          <input
+                            type="number"
+                            min="0"
+                            placeholder="Returned"
+                            value={
+                              returnData[booking._id]?.returnedQuantity || ""
+                            }
+                            onChange={(e) =>
+                              handleReturnChange(
+                                booking._id,
+                                "returnedQuantity",
+                                e.target.value
+                              )
+                            }
+                          />
+                          <input
+                            type="number"
+                            min="0"
+                            placeholder="Damaged"
+                            value={
+                              returnData[booking._id]?.damagedQuantity || ""
+                            }
+                            onChange={(e) =>
+                              handleReturnChange(
+                                booking._id,
+                                "damagedQuantity",
+                                e.target.value
+                              )
+                            }
+                          />
+                          <input
+                            type="number"
+                            min="0"
+                            placeholder="Lost"
+                            value={returnData[booking._id]?.lostQuantity || ""}
+                            onChange={(e) =>
+                              handleReturnChange(
+                                booking._id,
+                                "lostQuantity",
+                                e.target.value
+                              )
+                            }
+                          />
+                          <input
+                            type="text"
+                            placeholder="Remarks"
+                            value={returnData[booking._id]?.remarks || ""}
+                            onChange={(e) =>
+                              handleReturnChange(
+                                booking._id,
+                                "remarks",
+                                e.target.value
+                              )
+                            }
+                          />
+                          <button
+                            type="button"
+                            className="return-btn"
+                            onClick={() => handleReturnSubmit(booking._id)}
+                          >
+                            Update
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="done-text">Updated</span>
+                      )}
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="no-data">
+                  <td colSpan="7" className="no-data">
                     No equipment bookings yet
                   </td>
                 </tr>
