@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
 import "./OrganizerTournamentDashboard.css";
+import logoImg from "../../assets/logo.jpg";
 
 export default function OrganizerTournamentDashboard() {
   const [tournaments, setTournaments] = useState([]);
@@ -180,6 +181,33 @@ export default function OrganizerTournamentDashboard() {
             <h2>My Tournaments</h2>
             <p>View and manage all tournaments you created.</p>
           </div>
+        </div>
+
+        <div className="sp-formCard" style={{ marginBottom: 14 }}>
+          <div className="sp-cardTop">
+            <h3 className="sp-cardTitle">Notifications</h3>
+            <button
+              type="button"
+              className="sp-btnOutline"
+              onClick={clearNotifications}
+            >
+              Clear
+            </button>
+          </div>
+
+          {notifications.length === 0 ? (
+            <div className="sp-empty" style={{ marginTop: 10 }}>
+              No notifications yet.
+            </div>
+          ) : (
+            <div className="sp-meta" style={{ marginTop: 10 }}>
+              {notifications.map((n) => (
+                <div key={n.id}>
+                  <b>{formatDate(n.createdAt)}:</b> {n.text}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {tournaments.length === 0 ? (

@@ -21,6 +21,8 @@ import Tournaments from "./pages/Tournaments/Tournaments";
 import TournamentDetails from "./pages/Tournaments/TournamentDetails";
 import ParticipantDashboard from "./pages/Participant/ParticipantDashboard";
 
+import Profile from "./pages/Profile/Profile";
+
 function Placeholder({ title }) {
   return (
     <div style={{ padding: 30, fontFamily: "Arial" }}>
@@ -54,6 +56,8 @@ export default function App() {
         {/* Participant */}
         <Route path="/participant-dashboard" element={<ParticipantDashboard />} />
 
+        <Route path="/profile" element={<Profile />} />
+
         <Route path="/adminlogin" element={<AdminLogin />} />
         <Route path="/adminusers" element={<AdminUsers />} />
         <Route path="/admindashboard" element={<AdminDashboard />} />
@@ -62,6 +66,7 @@ export default function App() {
           element={<EquipmentAllocationManagement />}
         />
       </Routes>
+
     </BrowserRouter>
   );
 }
