@@ -14,6 +14,7 @@ import OrganizerTournamentDashboard from "./pages/Organizer/OrganizerTournamentD
 import CreateTournament from "./pages/Organizer/CreateTournament";
 import EditTournament from "./pages/Organizer/EditTournament";
 import OrganizerTournamentRegistrations from "./pages/Organizer/OrganizerTournamentRegistrations";
+import BookEquipment from "./pages/Organizer/BookEquipment";
 
 // ✅ Public tournaments list page
 import Tournaments from "./pages/Tournaments/Tournaments";
@@ -48,30 +49,10 @@ export default function App() {
         <Route path="/organizer/tournaments/new" element={<CreateTournament />} />
         <Route path="/organizer/tournaments/:id/edit" element={<EditTournament />} />
         <Route path="/organizer/tournaments/:id/registrations" element={<OrganizerTournamentRegistrations />} />
+        <Route path="/organizer/tournaments/:id/book-equipment" element={<BookEquipment />} />
 
         {/* Participant */}
         <Route path="/participant-dashboard" element={<ParticipantDashboard />} />
-        <Route
-          path="/organizer-dashboard"
-          element={<OrganizerTournamentDashboard />}
-        />
-        <Route
-          path="/organizer/tournaments/new"
-          element={<CreateTournament />}
-        />
-        <Route
-          path="/organizer/tournaments/:id/edit"
-          element={<EditTournament />}
-        />
-
-        <Route
-          path="/participant-dashboard"
-          element={
-            <h2 style={{ color: "white", padding: "20px" }}>
-              Participant Dashboard
-            </h2>
-          }
-        />
 
         <Route path="/adminlogin" element={<AdminLogin />} />
         <Route path="/adminusers" element={<AdminUsers />} />

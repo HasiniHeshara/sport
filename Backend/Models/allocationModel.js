@@ -7,7 +7,12 @@ const allocationSchema = new mongoose.Schema(
       ref: "Equipment",
       required: true,
     },
-    eventName: {
+    tournamentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tournament",
+      required: true,
+    },
+    tournamentTitle: {
       type: String,
       required: true,
       trim: true,
@@ -20,11 +25,6 @@ const allocationSchema = new mongoose.Schema(
     allocatedDate: {
       type: Date,
       default: Date.now,
-    },
-    returnedQuantity: {
-      type: Number,
-      default: 0,
-      min: 0,
     },
     status: {
       type: String,
