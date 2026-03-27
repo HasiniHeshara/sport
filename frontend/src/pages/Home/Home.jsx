@@ -19,7 +19,7 @@ const heroImages = [hero1, hero2, hero3];
 export default function Home() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [showAuth, setShowAuth] = useState(false);
+  
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -59,9 +59,6 @@ export default function Home() {
             </button>
             <button className="nav-btn primary" onClick={() => navigate("/register")}>
               Register
-            </button>
-            <button className="nav-btn primary" onClick={() => navigate("/adminlogin")}>
-            Admin Login
             </button>
           </div>
         </header>
@@ -125,45 +122,33 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Auth Section (Login/Register shortcut) */}
-        <section className={`auth-section ${showAuth ? "show-auth" : ""}`}>
-          <div className="auth-container">
-            <div className="auth-left">
-              <h2>Welcome to Sportix</h2>
-              <p>
-                Log in to access your dashboard. You will be redirected based on your role
-                (Organizer / Participant).
-              </p>
+        <section className="home-container why-section">
+          <div className="section-heading">
+            <h2>Why Choose Sportix?</h2>
+            <p>A practical sports tournament platform built for both organizers and participants.</p>
+          </div>
 
-              <div className="auth-actions">
-                <button className="action-button" onClick={() =>setShowAuth(true)}>
-                  Login
-                </button>
-                <button className="action-button outline" onClick={() => navigate("/register")}>
-                  Register
-                </button>
-                <button className="close-auth" onClick={() => setShowAuth(false)}>
-                  Close
-                </button>
-              </div>
+          <div className="why-grid">
+             <div className="why-card">
+              <h3>Simple User Flow</h3>
+              <p>From registration to tournament management, every step is easy to follow.</p>
             </div>
-
-            <div className="auth-right">
-              <div className="auth-box">
-                <h3>Quick Links</h3>
-                <button onClick={() => navigate("/tournaments")} className="quick-btn">
-                  View Open Tournaments
-                </button>
-                <button onClick={() => navigate("/organizer/create")} className="quick-btn">
-                  Organizer: Create Tournament
-                </button>
-                <button onClick={() => navigate("/my-registrations")} className="quick-btn">
-                  Participant: My Registrations
-                </button>
-              </div>
+            <div className="why-card">
+              <h3>Role-Based Access</h3>
+              <p>Different dashboards and actions for admins, organizers, and participants.</p>
+            </div>
+            <div className="why-card">
+              <h3>Live Tournament Control</h3>
+              <p>Track status, registrations, and organizer actions in a structured way.</p>
+            </div>
+            <div className="why-card">
+              <h3>University Friendly</h3>
+              <p>Well suited for university tournaments, clubs, and student sports events.</p>
             </div>
           </div>
         </section>
+
+
 
         {/* Testimonials */}
         <section className="testimonials-section">

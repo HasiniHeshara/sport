@@ -206,9 +206,9 @@ export default function Profile() {
         {form.role === "participant" && (
           <>
             <div className="activity-summary">
-              <span>Pending: {activities.pendingCount || 0}</span>
-              <span>Approved: {activities.approvedCount || 0}</span>
-              <span>Rejected: {activities.rejectedCount || 0}</span>
+            <span className="pending-badge">Pending: {activities.pendingCount || 0}</span>
+            <span className="approved-badge">Approved: {activities.approvedCount || 0}</span>
+            <span className="rejected-badge">Rejected: {activities.rejectedCount || 0}</span>
             </div>
 
             <ul>
