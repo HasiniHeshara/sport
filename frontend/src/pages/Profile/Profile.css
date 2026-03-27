@@ -9,6 +9,27 @@
   gap: 20px;
 }
 
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.logout-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 12px;
+  background: #f59e0b;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.logout-btn:hover {
+  opacity: 0.9;
+}
+
 .profile-card,
 .activity-card {
   background: rgba(255, 255, 255, 0.06);
@@ -77,11 +98,11 @@
 }
 
 .update-btn {
-  background: #dd5810;
+  background: #6d79a3;
 }
 
 .delete-btn {
-  background: #dd5810;
+  background: #103cdd;
 }
 
 .activity-card h3 {
