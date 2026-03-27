@@ -21,6 +21,14 @@ const AdminDashboard = () => {
           <h3>Manage Equipment</h3>
           <p>Add, edit, delete, and manage sports equipment records</p>
         </div>
+
+         
+        <div className="admin-card" onClick={() => navigate("/adminusers")}>
+          <h3>Manage User Feedbacks</h3>
+          <p> Check and maintain user feddbacks </p>
+        </div>
+
+        
       </div>
     </div>
   );
