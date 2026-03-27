@@ -105,6 +105,12 @@
   align-items:center;
 }
 
+.sp-link{
+  color: #ffd2b0;
+  font-weight: 800;
+  text-decoration: underline;
+}
+
 .sp-btn{
   padding: 10px 14px;
   border-radius: 12px;
@@ -126,6 +132,32 @@
   cursor: pointer;
 }
 
+.sp-btnOutline{
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(148,163,184,.22);
+  color: #e5e7eb;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sp-btnOutline:disabled,
+.sp-btnDark:disabled{
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.sp-btnDanger{
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 59, 59, .18);
+  border: 1px solid rgba(255, 59, 59, .35);
+  color: #ffd1d1;
+  font-weight: 900;
+  cursor: pointer;
+}
+
 .sp-status{
   padding: 6px 10px;
   border-radius: 999px;
@@ -137,10 +169,52 @@
   white-space: nowrap;
 }
 
+.sp-draft{
+  background: rgba(148,163,184,.10);
+}
+
 .sp-published{
   background: rgba(34,197,94,.12);
   border-color: rgba(34,197,94,.25);
   color: #bbf7d0;
+}
+
+.sp-closed{
+  background: rgba(239,68,68,.12);
+  border-color: rgba(239,68,68,.25);
+  color: #fecaca;
+}
+
+/* form styles used by Create/Edit */
+.sp-formCard{
+  margin-top: 16px;
+  background: rgba(15,23,42,.65);
+  border: 1px solid rgba(148,163,184,.18);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+.sp-formGrid{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 900px){
+  .sp-formGrid{
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.sp-label{
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 900;
+  margin-bottom: 8px;
+  display:block;
+  line-height: 1.4;
+  letter-spacing: 0.2px;
 }
 
 .sp-input{
@@ -156,20 +230,48 @@
   -webkit-appearance: none;
 }
 
-/* Make native date picker icon visible on dark inputs */
-.sp-input[type="date"]{
-  color-scheme: dark;
+.sp-input:focus{
+  border-color: rgba(255,106,0,.55);
+  box-shadow: 0 0 0 4px rgba(255,106,0,.12);
+}
+
+.sp-formActions{
+  margin-top: 14px;
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* date icon support */
+.sp-dateWrap{
   position: relative;
-  padding-right: 42px;
 }
 
-.sp-input[type="date"]::-webkit-calendar-picker-indicator{
-  opacity: 1;
+.sp-dateInput{
+  padding-right: 46px;
+  color-scheme: dark;
+}
+
+.sp-dateIcon{
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 16px;
+  opacity: 0.95;
+}
+
+.sp-dateInput::-webkit-calendar-picker-indicator{
+  position: absolute;
+  right: 0;
+  width: 46px;
+  height: 100%;
+  opacity: 0;
   cursor: pointer;
-  filter: invert(1) brightness(4);
 }
 
-.sp-input[type="date"]::-webkit-inner-spin-button,
-.sp-input[type="date"]::-webkit-clear-button{
+.sp-dateInput::-webkit-inner-spin-button,
+.sp-dateInput::-webkit-clear-button{
   display: none;
 }
