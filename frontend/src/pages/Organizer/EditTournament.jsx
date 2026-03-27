@@ -69,12 +69,55 @@ export default function EditTournament() {
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
   };
 
+  const validateForm = () => {
+    if (!organizerId) return "Please login as organizer first.";
+
+    if (!form.sportType.trim()) return "Sport Type is required.";
+    if (!form.title.trim()) return "Title is required.";
+    if (!form.venue.trim()) return "Venue is required.";
+
+    if (form.title.trim().length < 3) {
+      return "Title must be at least 3 characters.";
+    }
+
+    if (form.venue.trim().length < 3) {
+      return "Venue must be at least 3 characters.";
+    }
+
+    if (!form.registrationDeadline) return "Registration Deadline is required.";
+    if (!form.startDate) return "Start Date is required.";
+    if (!form.endDate) return "End Date is required.";
+
+    if (Number(form.teamLimit) < 2) {
+      return "Team Limit must be at least 2.";
+    }
+
+    if (Number(form.registrationFee) < 0) {
+      return "Registration Fee cannot be negative.";
+    }
+
+    const deadline = new Date(form.registrationDeadline);
+    const start = new Date(form.startDate);
+    const end = new Date(form.endDate);
+
+    if (start > end) {
+      return "Start Date cannot be after End Date.";
+    }
+
+    if (deadline >= start) {
+      return "Registration Deadline must be before Start Date.";
+    }
+
+    return "";
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     setMsg("");
 
-    if (!organizerId) {
-      setMsg("Please login as organizer first.");
+    const validationError = validateForm();
+    if (validationError) {
+      setMsg(validationError);
       return;
     }
 
@@ -164,7 +207,7 @@ export default function EditTournament() {
                   className="sp-input"
                   name="teamLimit"
                   type="number"
-                  min="1"
+                  min="2"
                   value={form.teamLimit}
                   onChange={onChange}
                   required
