@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link,useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "./OrganizerTournamentDashboard.css";
 import logoImg from "../../assets/logo.jpg";
@@ -43,6 +43,39 @@ export default function OrganizerTournamentDashboard() {
     saveNotifications([]);
   };
 
+  const getDaysLeft = (deadline) => {
+    if (!deadline) return "N/A";
+
+    const today = new Date();
+    const end = new Date(deadline);
+
+    today.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    const diff = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+
+    if (diff < 0) return "Deadline passed";
+    if (diff === 0) return "Ends today";
+    if (diff === 1) return "1 day left";
+    return `${diff} days left`;
+  };
+
+  const buildInsights = (registrations = [], teamLimit = 0) => {
+    const pending = registrations.filter((r) => r.status === "Pending").length;
+    const approved = registrations.filter((r) => r.status === "Approved").length;
+    const rejected = registrations.filter((r) => r.status === "Rejected").length;
+    const total = registrations.length;
+    const slotsRemaining = Math.max(Number(teamLimit || 0) - approved, 0);
+
+    return {
+      total,
+      pending,
+      approved,
+      rejected,
+      slotsRemaining,
+    };
+  };
+
   const load = async () => {
     try {
       setLoading(true);
@@ -55,7 +88,34 @@ export default function OrganizerTournamentDashboard() {
       }
 
       const res = await api.get(`/api/tournaments/mine?organizerId=${organizerId}`);
-      setTournaments(res.data || []);
+      const baseTournaments = res.data || [];
+
+      const withInsights = await Promise.all(
+        baseTournaments.map(async (t) => {
+          try {
+            const regRes = await api.get(`/api/tournaments/${t._id}/registrations`);
+            const registrations = regRes.data || [];
+
+            return {
+              ...t,
+              insights: buildInsights(registrations, t.teamLimit),
+            };
+          } catch {
+            return {
+              ...t,
+              insights: {
+                total: 0,
+                pending: 0,
+                approved: 0,
+                rejected: 0,
+                slotsRemaining: Number(t.teamLimit || 0),
+              },
+            };
+          }
+        })
+      );
+
+      setTournaments(withInsights);
     } catch (err) {
       setMsg(err.response?.data?.message || "Failed to load tournaments");
     } finally {
@@ -66,6 +126,7 @@ export default function OrganizerTournamentDashboard() {
   useEffect(() => {
     setNotifications(getStoredNotifications());
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const doAction = async (id, action) => {
@@ -91,6 +152,12 @@ export default function OrganizerTournamentDashboard() {
     }
   };
 
+  const goToBookEquipment = (tournament) => {
+    navigate(`/organizer/tournaments/${tournament._id}/book-equipment`, {
+      state: { tournament },
+    });
+  };
+
   const totalTournaments = tournaments.length;
   const publishedCount = tournaments.filter((t) => t.status === "Published").length;
   const draftCount = tournaments.filter((t) => t.status === "Draft").length;
@@ -99,22 +166,23 @@ export default function OrganizerTournamentDashboard() {
   return (
     <div className="org-page">
       <header className="home-nav">
-                      <div className="brand" onClick={() => navigate("/")}>
-                        <img src={logoImg} alt="Sportix Logo" className="brand-logo" />
-                        <div className="brand-text">
-                          <h3>Sportix</h3>
-                          <p>Sports Tournament Platform</p>
-                        </div>
-                      </div>
-            
-                      <nav className="nav-links">
-                        <Link to="/" className="nav-link active">Home</Link>
-                        <Link to="/tournaments" className="nav-link">Tournaments</Link>
-                        <Link to="/about" className="nav-link">About</Link>
-                        <Link to="/contact" className="nav-link">Contact</Link>
-                        <Link to="/profile" className="nav-link">Profile</Link>
-                      </nav>
-              </header>
+        <div className="brand" onClick={() => navigate("/")}>
+          <img src={logoImg} alt="Sportix Logo" className="brand-logo" />
+          <div className="brand-text">
+            <h3>Sportix</h3>
+            <p>Sports Tournament Platform</p>
+          </div>
+        </div>
+
+        <nav className="nav-links">
+          <Link to="/" className="nav-link active">Home</Link>
+          <Link to="/tournaments" className="nav-link">Tournaments</Link>
+          <Link to="/about" className="nav-link">About</Link>
+          <Link to="/contact" className="nav-link">Contact</Link>
+          <Link to="/profile" className="nav-link">Profile</Link>
+        </nav>
+      </header>
+
       <div className="org-container">
         <div className="org-hero">
           <div className="org-heroText">
@@ -201,33 +269,6 @@ export default function OrganizerTournamentDashboard() {
           </div>
         </div>
 
-        <div className="sp-formCard" style={{ marginBottom: 14 }}>
-          <div className="sp-cardTop">
-            <h3 className="sp-cardTitle">Notifications</h3>
-            <button
-              type="button"
-              className="sp-btnOutline"
-              onClick={clearNotifications}
-            >
-              Clear
-            </button>
-          </div>
-
-          {notifications.length === 0 ? (
-            <div className="sp-empty" style={{ marginTop: 10 }}>
-              No notifications yet.
-            </div>
-          ) : (
-            <div className="sp-meta" style={{ marginTop: 10 }}>
-              {notifications.map((n) => (
-                <div key={n.id}>
-                  <b>{formatDate(n.createdAt)}:</b> {n.text}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
         {tournaments.length === 0 ? (
           <div className="org-emptyBox">No tournaments yet.</div>
         ) : (
@@ -235,6 +276,13 @@ export default function OrganizerTournamentDashboard() {
             {tournaments.map((t) => {
               const status = String(t.status || "").trim();
               const statusClass = `org-badge org-${status.toLowerCase()}`;
+              const insights = t.insights || {
+                total: 0,
+                pending: 0,
+                approved: 0,
+                rejected: 0,
+                slotsRemaining: Number(t.teamLimit || 0),
+              };
 
               return (
                 <div className="org-card" key={t._id}>
@@ -278,10 +326,50 @@ export default function OrganizerTournamentDashboard() {
                     </div>
                   </div>
 
+                  <div className="org-insightGrid">
+                    <div className="org-insightBox">
+                      <span>Total Registrations</span>
+                      <strong>{insights.total}</strong>
+                    </div>
+
+                    <div className="org-insightBox">
+                      <span>Pending</span>
+                      <strong>{insights.pending}</strong>
+                    </div>
+
+                    <div className="org-insightBox">
+                      <span>Approved</span>
+                      <strong>{insights.approved}</strong>
+                    </div>
+
+                    <div className="org-insightBox">
+                      <span>Rejected</span>
+                      <strong>{insights.rejected}</strong>
+                    </div>
+
+                    <div className="org-insightBox">
+                      <span>Slots Remaining</span>
+                      <strong>{insights.slotsRemaining}</strong>
+                    </div>
+
+                    <div className="org-insightBox">
+                      <span>Countdown</span>
+                      <strong>{getDaysLeft(t.registrationDeadline)}</strong>
+                    </div>
+                  </div>
+
                   <div className="org-actions">
                     <Link className="org-linkBtn" to={`/organizer/tournaments/${t._id}/edit`}>
                       Edit
                     </Link>
+
+                    <button
+                      type="button"
+                      className="org-linkBtn org-linkSecondary"
+                      onClick={() => goToBookEquipment(t)}
+                    >
+                      Book Equipment
+                    </button>
 
                     <Link
                       className="org-linkBtn org-linkSecondary"
