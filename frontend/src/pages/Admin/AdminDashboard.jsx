@@ -22,13 +22,18 @@ const AdminDashboard = () => {
           <p>Add, edit, delete, and manage sports equipment records</p>
         </div>
 
-        <div
-          className="admin-card"
-          onClick={() => navigate("/admin/manage-payments")}
-        >
-          <h3>Manage Payments</h3>
-          <p>Verify payment receipts and manage payment details</p>
+         
+        <div className="admin-card" onClick={() => navigate("/feedback")}>
+          <h3>Manage User Feedbacks</h3>
+          <p> Check and maintain user feddbacks </p>
         </div>
+
+         <div className="admin-card" onClick={() => navigate("/paymentDetails")}>
+          <h3>Manage Payments</h3>
+          <p> Verify payment receipts</p>
+        </div>
+
+        
       </div>
     </div>
   );

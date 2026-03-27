@@ -103,6 +103,14 @@ export default function Profile() {
     }
   };
 
+    const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/");
+  };
+
+
+
   if (loading) {
     return <div className="profile-page">Loading profile...</div>;
   }
@@ -111,11 +119,19 @@ export default function Profile() {
     <div className="profile-page">
       <div className="profile-card">
         <div className="profile-header">
-          <h2>My Profile</h2>
-          <p>{form.role === "organizer" ? "Organizer Profile" : "Participant Profile"}</p>
+          <div>
+            <h2>My Profile</h2>
+            <p>{form.role === "organizer" ? "Organizer Profile" : "Participant Profile"}</p>
+          </div>
+
+          <button className="logout-btn" onClick={handleLogout}>
+            Logout
+          </button>
         </div>
 
         {msg && <div className="profile-msg">{msg}</div>}
+
+        
 
         <form onSubmit={handleUpdate} className="profile-form">
           <div className="profile-grid">
