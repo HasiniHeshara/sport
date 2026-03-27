@@ -19,7 +19,7 @@ const heroImages = [hero1, hero2, hero3];
 export default function Home() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [showAuth, setShowAuth] = useState(false);
+  
 
   useEffect(() => {
     const interval = setInterval(() => {
