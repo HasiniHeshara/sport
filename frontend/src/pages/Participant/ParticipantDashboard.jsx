@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link,useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "../Tournaments/Tournaments.css";
 import logoImg from "../../assets/logo.jpg";
@@ -85,7 +85,9 @@ export default function ParticipantDashboard() {
       const nextStatus = String(r.status || "");
       if (prevStatus && prevStatus !== nextStatus) {
         const tournamentName = r?.tournamentId?.title || "a tournament";
-        pushNotification(`Registration for ${tournamentName} changed: ${prevStatus} -> ${nextStatus}`);
+        pushNotification(
+          `Registration for ${tournamentName} changed: ${prevStatus} -> ${nextStatus}`
+        );
       }
     });
 
@@ -116,7 +118,9 @@ export default function ParticipantDashboard() {
       setRegistrations(nextRegistrations);
       notifyStatusChanges(nextRegistrations);
     } catch (err) {
-      setMsg(err.response?.data?.message || "Failed to load participant dashboard");
+      setMsg(
+        err.response?.data?.message || "Failed to load participant dashboard"
+      );
     } finally {
       setLoading(false);
     }
@@ -150,29 +154,41 @@ export default function ParticipantDashboard() {
 
   return (
     <div className="sp-page">
-         <header className="home-nav">
-                <div className="brand" onClick={() => navigate("/")}>
-                  <img src={logoImg} alt="Sportix Logo" className="brand-logo" />
-                  <div className="brand-text">
-                    <h3>Sportix</h3>
-                    <p>Sports Tournament Platform</p>
-                  </div>
-                </div>
-      
-                <nav className="nav-links">
-                  <Link to="/" className="nav-link active">Home</Link>
-                  <Link to="/tournaments" className="nav-link">Tournaments</Link>
-                  <Link to="/about" className="nav-link">About</Link>
-                  <Link to="/contact" className="nav-link">Contact</Link>
-                  <Link to="/profile" className="nav-link">Profile</Link>
-                </nav>
-        </header>
+      <header className="home-nav">
+        <div className="brand" onClick={() => navigate("/")}>
+          <img src={logoImg} alt="Sportix Logo" className="brand-logo" />
+          <div className="brand-text">
+            <h3>Sportix</h3>
+            <p>Sports Tournament Platform</p>
+          </div>
+        </div>
+
+        <nav className="nav-links">
+          <Link to="/" className="nav-link active">
+            Home
+          </Link>
+          <Link to="/tournaments" className="nav-link">
+            Tournaments
+          </Link>
+          <Link to="/about" className="nav-link">
+            About
+          </Link>
+          <Link to="/contact" className="nav-link">
+            Contact
+          </Link>
+          <Link to="/profile" className="nav-link">
+            Profile
+          </Link>
+        </nav>
+      </header>
+
       <div className="sp-container">
         <div className="sp-head">
           <div>
-            
             <h2 className="sp-title">Participant Dashboard</h2>
-            <p className="sp-subtitle">Browse tournaments and submit your team registration.</p>
+            <p className="sp-subtitle">
+              Browse tournaments and submit your team registration.
+            </p>
           </div>
 
           <button type="button" className="sp-btnDark" onClick={load}>
@@ -185,13 +201,19 @@ export default function ParticipantDashboard() {
         <div className="sp-formCard" style={{ marginBottom: 14 }}>
           <div className="sp-cardTop">
             <h3 className="sp-cardTitle">Notifications</h3>
-            <button type="button" className="sp-btnOutline" onClick={clearNotifications}>
+            <button
+              type="button"
+              className="sp-btnOutline"
+              onClick={clearNotifications}
+            >
               Clear
             </button>
           </div>
 
           {notifications.length === 0 ? (
-            <div className="sp-empty" style={{ marginTop: 10 }}>No notifications yet.</div>
+            <div className="sp-empty" style={{ marginTop: 10 }}>
+              No notifications yet.
+            </div>
           ) : (
             <div className="sp-meta" style={{ marginTop: 10 }}>
               {notifications.map((n) => (
@@ -205,12 +227,16 @@ export default function ParticipantDashboard() {
 
         <div className="sp-head" style={{ marginTop: 8 }}>
           <div>
-            <h3 className="sp-title" style={{ fontSize: 22 }}>Available Tournaments</h3>
+            <h3 className="sp-title" style={{ fontSize: 22 }}>
+              Available Tournaments
+            </h3>
           </div>
         </div>
 
         {tournaments.length === 0 ? (
-          <div className="sp-empty">No published tournaments available right now.</div>
+          <div className="sp-empty">
+            No published tournaments available right now.
+          </div>
         ) : (
           <div className="sp-grid">
             {tournaments.map((t) => {
@@ -239,13 +265,19 @@ export default function ParticipantDashboard() {
                   </div>
 
                   <div className="sp-meta">
-                    <div><b>Sport:</b> {t.sportType}</div>
-                    <div><b>Venue:</b> {t.venue}</div>
                     <div>
-                      <b>Start:</b> {formatDate(t.startDate)} | <b>End:</b> {formatDate(t.endDate)}
+                      <b>Sport:</b> {t.sportType}
                     </div>
                     <div>
-                      <b>Deadline:</b> {formatDate(t.registrationDeadline)} | <b>Team Limit:</b> {t.teamLimit}
+                      <b>Venue:</b> {t.venue}
+                    </div>
+                    <div>
+                      <b>Start:</b> {formatDate(t.startDate)} | <b>End:</b>{" "}
+                      {formatDate(t.endDate)}
+                    </div>
+                    <div>
+                      <b>Deadline:</b> {formatDate(t.registrationDeadline)} |{" "}
+                      <b>Team Limit:</b> {t.teamLimit}
                     </div>
                     {reg && (
                       <div>
@@ -263,6 +295,16 @@ export default function ParticipantDashboard() {
                     >
                       {actionLabel}
                     </button>
+
+                    {reg?.status === "Approved" && (
+                      <button
+                        type="button"
+                        className="pay-now-btn"
+                        onClick={() => navigate("/my-registrations")}
+                      >
+                        Pay Now
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -272,17 +314,23 @@ export default function ParticipantDashboard() {
 
         <div className="sp-head" style={{ marginTop: 18 }}>
           <div>
-            <h3 className="sp-title" style={{ fontSize: 22 }}>My Tournament Registrations</h3>
+            <h3 className="sp-title" style={{ fontSize: 22 }}>
+              My Tournament Registrations
+            </h3>
           </div>
         </div>
 
         {registrations.length === 0 ? (
-          <div className="sp-empty">You have not submitted any team registrations yet.</div>
+          <div className="sp-empty">
+            You have not submitted any team registrations yet.
+          </div>
         ) : (
           <div className="sp-grid">
             {registrations.map((r) => {
               const t = r.tournamentId || {};
-              const closed = new Date() > new Date(t.registrationDeadline) || t.status !== "Published";
+              const closed =
+                new Date() > new Date(t.registrationDeadline) ||
+                t.status !== "Published";
 
               return (
                 <div className="sp-card" key={r._id}>
@@ -292,20 +340,44 @@ export default function ParticipantDashboard() {
                   </div>
 
                   <div className="sp-meta">
-                    <div><b>Team:</b> {r.teamName}</div>
-                    <div><b>Sport:</b> {t.sportType || "-"}</div>
-                    <div><b>Submitted:</b> {formatDate(r.createdAt)}</div>
-                    {r.rejectionReason ? <div><b>Reason:</b> {r.rejectionReason}</div> : null}
+                    <div>
+                      <b>Team:</b> {r.teamName}
+                    </div>
+                    <div>
+                      <b>Sport:</b> {t.sportType || "-"}
+                    </div>
+                    <div>
+                      <b>Submitted:</b> {formatDate(r.createdAt)}
+                    </div>
+                    {r.rejectionReason ? (
+                      <div>
+                        <b>Reason:</b> {r.rejectionReason}
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className="sp-actions">
                     <button
                       type="button"
                       className="sp-btn"
-                      onClick={() => navigate(`/tournaments/${t._id || r.tournamentId}`)}
+                      onClick={() =>
+                        navigate(`/tournaments/${t._id || r.tournamentId}`)
+                      }
                     >
-                      {r.status === "Rejected" && !closed ? "Update & Resubmit" : "View Registration"}
+                      {r.status === "Rejected" && !closed
+                        ? "Update & Resubmit"
+                        : "View Registration"}
                     </button>
+
+                    {r.status === "Approved" && (
+                      <button
+                        type="button"
+                        className="pay-now-btn"
+                        onClick={() => navigate("/my-registrations")}
+                      >
+                        Pay Now
+                      </button>
+                    )}
                   </div>
                 </div>
               );
