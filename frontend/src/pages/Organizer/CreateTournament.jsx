@@ -9,6 +9,8 @@ export default function CreateTournament() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const organizerId = user?.id || user?._id;
 
+  const today = new Date().toISOString().split("T")[0];
+
   const [form, setForm] = useState({
     organizerId: organizerId || "",
     sportType: "",
@@ -25,7 +27,21 @@ export default function CreateTournament() {
   const [loading, setLoading] = useState(false);
 
   const onChange = (e) => {
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+
+    if (name === "registrationFee") {
+      const onlyNumbers = value.replace(/[^0-9]/g, "");
+      setForm((p) => ({ ...p, [name]: onlyNumbers }));
+      return;
+    }
+
+    setForm((p) => ({ ...p, [name]: value }));
+  };
+
+  const blockInvalidNumberKeys = (e) => {
+    if (["e", "E", "+", "-", "."].includes(e.key)) {
+      e.preventDefault();
+    }
   };
 
   const validateForm = () => {
@@ -37,11 +53,23 @@ export default function CreateTournament() {
     if (form.venue.trim().length < 3) return "Venue must be at least 3 characters";
 
     if (Number(form.teamLimit) < 2) return "Team Limit must be at least 2";
-    if (Number(form.registrationFee) < 0) return "Registration Fee cannot be negative";
+    if (Number(form.registrationFee || 0) < 0) return "Registration Fee cannot be negative";
 
     if (!form.registrationDeadline) return "Registration Deadline is required";
     if (!form.startDate) return "Start Date is required";
     if (!form.endDate) return "End Date is required";
+
+    if (form.registrationDeadline < today) {
+      return "Registration Deadline cannot be a past date";
+    }
+
+    if (form.startDate < today) {
+      return "Start Date cannot be a past date";
+    }
+
+    if (form.endDate < today) {
+      return "End Date cannot be a past date";
+    }
 
     if (new Date(form.startDate) > new Date(form.endDate)) {
       return "Start Date cannot be after End Date";
@@ -76,7 +104,7 @@ export default function CreateTournament() {
         ...form,
         organizerId,
         teamLimit: Number(form.teamLimit),
-        registrationFee: Number(form.registrationFee),
+        registrationFee: Number(form.registrationFee || 0),
       });
 
       navigate("/organizer-dashboard");
@@ -146,6 +174,7 @@ export default function CreateTournament() {
                   min="2"
                   value={form.teamLimit}
                   onChange={onChange}
+                  onKeyDown={blockInvalidNumberKeys}
                   required
                 />
               </div>
@@ -157,45 +186,59 @@ export default function CreateTournament() {
                   name="registrationFee"
                   type="number"
                   min="0"
+                  inputMode="numeric"
                   value={form.registrationFee}
                   onChange={onChange}
+                  onKeyDown={blockInvalidNumberKeys}
                 />
               </div>
 
               <div>
                 <label className="sp-label">Registration Deadline</label>
-                <input
-                  className="sp-input"
-                  name="registrationDeadline"
-                  type="date"
-                  value={form.registrationDeadline}
-                  onChange={onChange}
-                  required
-                />
+                <div className="sp-dateWrap">
+                  <input
+                    className="sp-input sp-dateInput"
+                    name="registrationDeadline"
+                    type="date"
+                    min={today}
+                    value={form.registrationDeadline}
+                    onChange={onChange}
+                    required
+                  />
+                  <span className="sp-dateIcon">📅 </span>
+                </div>
               </div>
 
               <div>
                 <label className="sp-label">Start Date</label>
-                <input
-                  className="sp-input"
-                  name="startDate"
-                  type="date"
-                  value={form.startDate}
-                  onChange={onChange}
-                  required
-                />
+                <div className="sp-dateWrap">
+                  <input
+                    className="sp-input sp-dateInput"
+                    name="startDate"
+                    type="date"
+                    min={today}
+                    value={form.startDate}
+                    onChange={onChange}
+                    required
+                  />
+                  <span className="sp-dateIcon">  📅 </span>
+                </div>
               </div>
 
               <div>
                 <label className="sp-label">End Date</label>
-                <input
-                  className="sp-input"
-                  name="endDate"
-                  type="date"
-                  value={form.endDate}
-                  onChange={onChange}
-                  required
-                />
+                <div className="sp-dateWrap">
+                  <input
+                    className="sp-input sp-dateInput"
+                    name="endDate"
+                    type="date"
+                    min={today}
+                    value={form.endDate}
+                    onChange={onChange}
+                    required
+                  />
+                  <span className="sp-dateIcon"> 📅 </span>
+                </div>
               </div>
             </div>
 

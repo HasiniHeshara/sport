@@ -1,118 +1,28 @@
-.ct-page{
-  min-height: 100vh;
-  background: #0b1220;
-  padding: 28px 16px;
-  box-sizing: border-box;
-}
-
-.ct-card{
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-  background: rgba(15,23,42,.65);
-  border: 1px solid rgba(148,163,184,.18);
-  border-radius: 24px;
-  padding: 28px 24px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+.sp-dateWrap{
   position: relative;
 }
 
-.ct-back{
-  position: absolute;
-  top: 26px;
-  right: 24px;
-  color: #ffd2b0;
-  text-decoration: none;
-  font-weight: 800;
-}
-
-.ct-title{
-  margin: 0;
-  font-size: 38px;
-  font-weight: 900;
-  color: #e5e7eb;
-}
-
-.ct-subtitle{
-  margin: 6px 0 0 0;
-  color: #94a3b8;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.ct-error{
-  margin: 14px 0 0 0;
-  color: #fecaca;
-  font-weight: 800;
-  background: rgba(239,68,68,.12);
-  border: 1px solid rgba(239,68,68,.25);
-  padding: 10px 12px;
-  border-radius: 12px;
-}
-
-.ct-form{
-  margin-top: 22px;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 18px 22px;
-}
-
-@media (min-width: 900px){
-  .ct-form{
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.ct-label{
-  color: #cbd5e1;
-  font-size: 13px;
-  font-weight: 800;
-  margin-bottom: 8px;
-  display:block;
-}
-
-.ct-input{
-  width: 100%;
-  padding: 14px 14px;
-  border-radius: 16px;
-  background: rgba(2,6,23,.72);
-  border: 1px solid rgba(148,163,184,.22);
-  color: #e5e7eb;
-  outline: none;
-  box-sizing: border-box;
-  appearance: none;
-  -webkit-appearance: none;
-}
-
-.ct-input:focus{
-  border-color: rgba(255,106,0,.55);
-  box-shadow: 0 0 0 4px rgba(255,106,0,.12);
-}
-
-.ct-input::placeholder{
-  color: #6b7280;
-}
-
-.ct-dateWrap{
-  position: relative;
-}
-
-.ct-dateInput{
+.sp-dateInput{
   padding-right: 46px;
   color-scheme: dark;
 }
 
-.ct-dateIcon{
+.sp-dateIcon{
   position: absolute;
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
-  font-size: 16px;
-  opacity: 0.95;
+  width: 18px;
+  height: 18px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  opacity: 1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
 }
 
-.ct-dateInput::-webkit-calendar-picker-indicator{
+.sp-dateInput::-webkit-calendar-picker-indicator{
   position: absolute;
   right: 0;
   width: 46px;
@@ -121,45 +31,7 @@
   cursor: pointer;
 }
 
-.ct-dateInput::-webkit-inner-spin-button,
-.ct-dateInput::-webkit-clear-button{
+.sp-dateInput::-webkit-inner-spin-button,
+.sp-dateInput::-webkit-clear-button{
   display: none;
-}
-
-.ct-actions{
-  grid-column: 1 / -1;
-  display:flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-
-.ct-btnPrimary,
-.ct-btnSecondary{
-  padding: 12px 18px;
-  border-radius: 16px;
-  font-weight: 900;
-  border: none;
-  cursor: pointer;
-  transition: .2s ease;
-}
-
-.ct-btnPrimary{
-  background: #ff6a00;
-  color: white;
-}
-
-.ct-btnPrimary:hover{
-  opacity: .92;
-}
-
-.ct-btnPrimary:disabled{
-  opacity: .55;
-  cursor: not-allowed;
-}
-
-.ct-btnSecondary{
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(148,163,184,.22);
-  color: #e5e7eb;
 }
