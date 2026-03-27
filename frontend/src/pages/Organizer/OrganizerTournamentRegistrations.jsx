@@ -47,9 +47,7 @@ export default function OrganizerTournamentRegistrations() {
 
   const reject = async (registrationId) => {
     const reason = window.prompt("Enter rejection reason:");
-    if (!reason || !reason.trim()) {
-      return;
-    }
+    if (!reason || !reason.trim()) return;
 
     try {
       setMsg("");
@@ -184,8 +182,8 @@ export default function OrganizerTournamentRegistrations() {
 
                 <div className="orgreg-details">
                   <div><b>Leader:</b> {r.leaderId?.name || "-"}</div>
-                  <div><b>Leader Email:</b> {r.leaderEmail}</div>
-                  <div><b>Leader Contact:</b> {r.contactNumber}</div>
+                  <div><b>Leader Email:</b> {r.leaderEmail || "-"}</div>
+                  <div><b>Leader Contact:</b> {r.contactNumber || "-"}</div>
                   <div><b>Members:</b> {r.members?.length || 0}</div>
                   {r.rejectionReason ? <div><b>Reason:</b> {r.rejectionReason}</div> : null}
                 </div>
