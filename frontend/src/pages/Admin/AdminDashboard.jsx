@@ -23,9 +23,14 @@ const AdminDashboard = () => {
         </div>
 
          
-        <div className="admin-card" onClick={() => navigate("/adminusers")}>
+        <div className="admin-card" onClick={() => navigate("/feedback")}>
           <h3>Manage User Feedbacks</h3>
           <p> Check and maintain user feddbacks </p>
+        </div>
+
+         <div className="admin-card" onClick={() => navigate("/paymentDetails")}>
+          <h3>Manage Payments</h3>
+          <p> Verify payment receipts</p>
         </div>
 
         
