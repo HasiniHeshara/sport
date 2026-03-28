@@ -8,6 +8,7 @@ import AdminLogin from "./pages/AdminLogin/AdminLogin";
 import AdminUsers from "./pages/AdminUser/AdminUser";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import EquipmentAllocationManagement from "./pages/Equipment/EquipmentAllocationManagement";
+import PaymentDetails from "./pages/Admin/PaymentDetails";
 
 // ✅ Organizer pages
 import OrganizerTournamentDashboard from "./pages/Organizer/OrganizerTournamentDashboard";
@@ -20,6 +21,7 @@ import BookEquipment from "./pages/Organizer/BookEquipment";
 import Tournaments from "./pages/Tournaments/Tournaments";
 import TournamentDetails from "./pages/Tournaments/TournamentDetails";
 import ParticipantDashboard from "./pages/Participant/ParticipantDashboard";
+import PaymentOptions from "./pages/Participant/PaymentOptions";
 
 import Profile from "./pages/Profile/Profile";
 
@@ -42,6 +44,7 @@ export default function App() {
 
         <Route path="/about" element={<Placeholder title="About" />} />
         <Route path="/contact" element={<Placeholder title="Contact" />} />
+        <Route path="/feedback" element={<Placeholder title="Feedback" />} />
 
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
@@ -55,18 +58,20 @@ export default function App() {
 
         {/* Participant */}
         <Route path="/participant-dashboard" element={<ParticipantDashboard />} />
+        <Route path="/payment-options" element={<PaymentOptions />} />
 
         <Route path="/profile" element={<Profile />} />
 
+        {/* Admin */}
         <Route path="/adminlogin" element={<AdminLogin />} />
         <Route path="/adminusers" element={<AdminUsers />} />
         <Route path="/admindashboard" element={<AdminDashboard />} />
+        <Route path="/paymentDetails" element={<PaymentDetails />} />
         <Route
           path="/equipment-management"
           element={<EquipmentAllocationManagement />}
         />
       </Routes>
-
     </BrowserRouter>
   );
 }

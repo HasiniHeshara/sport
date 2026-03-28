@@ -1,0 +1,124 @@
+.payment-admin-page {
+  min-height: 100vh;
+  background: #0b1020;
+  padding: 40px;
+}
+
+.payment-admin-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.payment-admin-top h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 30px;
+}
+
+.payment-admin-top p {
+  margin-top: 8px;
+  color: #cbd5e1;
+}
+
+.payment-admin-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin: 24px 0;
+}
+
+.payment-admin-statCard {
+  background: #dd5810;
+  border-radius: 14px;
+  padding: 20px;
+  color: #000;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+.payment-admin-statCard span {
+  font-weight: 700;
+}
+
+.payment-admin-statCard h3 {
+  margin: 8px 0 0;
+  font-size: 28px;
+}
+
+.payment-admin-tableWrap {
+  overflow-x: auto;
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.payment-admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 950px;
+}
+
+.payment-admin-table th,
+.payment-admin-table td {
+  text-align: left;
+  padding: 14px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  color: #e5e7eb;
+}
+
+.payment-admin-table th {
+  color: #fff;
+  font-size: 15px;
+}
+
+.payment-admin-badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.payment-admin-badge.pending {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fcd34d;
+}
+
+.payment-admin-badge.verified {
+  background: rgba(34, 197, 94, 0.18);
+  color: #bbf7d0;
+}
+
+.payment-admin-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.verify-btn,
+.view-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.verify-btn {
+  background: #22c55e;
+  color: #fff;
+}
+
+.view-btn {
+  background: #2563eb;
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .payment-admin-page {
+    padding: 20px;
+  }
+
+  .payment-admin-stats {
+    grid-template-columns: 1fr;
+  }
+}
