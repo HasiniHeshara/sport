@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
-import "./CreateTournament.css";
+import "../Tournaments/Tournaments.css";
 
 export default function CreateTournament() {
   const navigate = useNavigate();
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const organizerId = user?.id || user?._id;
+
+  const today = new Date().toISOString().split("T")[0];
 
   const [form, setForm] = useState({
     organizerId: organizerId || "",
@@ -24,19 +26,85 @@ export default function CreateTournament() {
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const onChange = (e) =>
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+  const onChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "registrationFee") {
+      const onlyNumbers = value.replace(/[^0-9]/g, "");
+      setForm((p) => ({ ...p, [name]: onlyNumbers }));
+      return;
+    }
+
+    setForm((p) => ({ ...p, [name]: value }));
+  };
+
+  const blockInvalidNumberKeys = (e) => {
+    if (["e", "E", "+", "-", "."].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  const validateForm = () => {
+    if (!form.sportType.trim()) return "Sport Type is required";
+    if (!form.title.trim()) return "Title is required";
+    if (!form.venue.trim()) return "Venue is required";
+
+    if (form.title.trim().length < 3) return "Title must be at least 3 characters";
+    if (form.venue.trim().length < 3) return "Venue must be at least 3 characters";
+
+    if (Number(form.teamLimit) < 2) return "Team Limit must be at least 2";
+    if (Number(form.registrationFee || 0) < 0) return "Registration Fee cannot be negative";
+
+    if (!form.registrationDeadline) return "Registration Deadline is required";
+    if (!form.startDate) return "Start Date is required";
+    if (!form.endDate) return "End Date is required";
+
+    if (form.registrationDeadline < today) {
+      return "Registration Deadline cannot be a past date";
+    }
+
+    if (form.startDate < today) {
+      return "Start Date cannot be a past date";
+    }
+
+    if (form.endDate < today) {
+      return "End Date cannot be a past date";
+    }
+
+    if (new Date(form.startDate) > new Date(form.endDate)) {
+      return "Start Date cannot be after End Date";
+    }
+
+    if (new Date(form.registrationDeadline) >= new Date(form.startDate)) {
+      return "Registration Deadline must be before Start Date";
+    }
+
+    return "";
+  };
 
   const submit = async (e) => {
     e.preventDefault();
     setMsg("");
-    setLoading(true);
+
+    if (!organizerId) {
+      setMsg("Please login as organizer first.");
+      return;
+    }
+
+    const error = validateForm();
+    if (error) {
+      setMsg(error);
+      return;
+    }
 
     try {
+      setLoading(true);
+
       await api.post("/api/tournaments", {
         ...form,
+        organizerId,
         teamLimit: Number(form.teamLimit),
-        registrationFee: Number(form.registrationFee),
+        registrationFee: Number(form.registrationFee || 0),
       });
 
       navigate("/organizer-dashboard");
@@ -48,138 +116,147 @@ export default function CreateTournament() {
   };
 
   return (
-    <div className="ct-page">
-      <div className="ct-card">
-        <Link className="ct-back" to="/organizer-dashboard">
-          ← Back
-        </Link>
-
-        <h2 className="ct-title">Create Tournament</h2>
-        <p className="ct-subtitle">Fill details and save as Draft.</p>
-
-        {msg && <div className="ct-error">{msg}</div>}
-
-        <form className="ct-form" onSubmit={submit}>
+    <div className="sp-page">
+      <div className="sp-container">
+        <div className="sp-head">
           <div>
-            <label className="ct-label">Sport Type</label>
-            <input
-              className="ct-input"
-              name="sportType"
-              placeholder="e.g., Cricket"
-              value={form.sportType}
-              onChange={onChange}
-              required
-            />
+            <h2 className="sp-title">Create Tournament</h2>
+            <p className="sp-subtitle">Fill details and save as Draft.</p>
           </div>
 
-          <div>
-            <label className="ct-label">Title</label>
-            <input
-              className="ct-input"
-              name="title"
-              placeholder="Tournament Title"
-              value={form.title}
-              onChange={onChange}
-              required
-            />
-          </div>
+          <Link className="sp-link" to="/organizer-dashboard">← Back</Link>
+        </div>
 
-          <div>
-            <label className="ct-label">Venue</label>
-            <input
-              className="ct-input"
-              name="venue"
-              placeholder="Venue"
-              value={form.venue}
-              onChange={onChange}
-              required
-            />
-          </div>
+        {msg && <p className="sp-error">{msg}</p>}
 
-          <div>
-            <label className="ct-label">Team Limit</label>
-            <input
-              className="ct-input"
-              name="teamLimit"
-              type="number"
-              min="1"
-              value={form.teamLimit}
-              onChange={onChange}
-              required
-            />
-          </div>
+        <div className="sp-formCard">
+          <form onSubmit={submit}>
+            <div className="sp-formGrid">
+              <div>
+                <label className="sp-label">Sport Type</label>
+                <input
+                  className="sp-input"
+                  name="sportType"
+                  value={form.sportType}
+                  onChange={onChange}
+                  required
+                />
+              </div>
 
-          <div>
-            <label className="ct-label">Registration Fee</label>
-            <input
-              className="ct-input"
-              name="registrationFee"
-              type="number"
-              min="0"
-              value={form.registrationFee}
-              onChange={onChange}
-            />
-          </div>
+              <div>
+                <label className="sp-label">Title</label>
+                <input
+                  className="sp-input"
+                  name="title"
+                  value={form.title}
+                  onChange={onChange}
+                  required
+                />
+              </div>
 
-          <div>
-            <label className="ct-label">Registration Deadline</label>
-            <div className="ct-dateWrap">
-              <input
-                className="ct-input ct-dateInput"
-                name="registrationDeadline"
-                type="date"
-                value={form.registrationDeadline}
-                onChange={onChange}
-                required
-              />
-              <span className="ct-dateIcon">📅</span>
+              <div>
+                <label className="sp-label">Venue</label>
+                <input
+                  className="sp-input"
+                  name="venue"
+                  value={form.venue}
+                  onChange={onChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="sp-label">Team Limit</label>
+                <input
+                  className="sp-input"
+                  name="teamLimit"
+                  type="number"
+                  min="2"
+                  value={form.teamLimit}
+                  onChange={onChange}
+                  onKeyDown={blockInvalidNumberKeys}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="sp-label">Registration Fee</label>
+                <input
+                  className="sp-input"
+                  name="registrationFee"
+                  type="number"
+                  min="0"
+                  inputMode="numeric"
+                  value={form.registrationFee}
+                  onChange={onChange}
+                  onKeyDown={blockInvalidNumberKeys}
+                />
+              </div>
+
+              <div>
+                <label className="sp-label">Registration Deadline</label>
+                <div className="sp-dateWrap">
+                  <input
+                    className="sp-input sp-dateInput"
+                    name="registrationDeadline"
+                    type="date"
+                    min={today}
+                    value={form.registrationDeadline}
+                    onChange={onChange}
+                    required
+                  />
+                  <span className="sp-dateIcon">📅 </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="sp-label">Start Date</label>
+                <div className="sp-dateWrap">
+                  <input
+                    className="sp-input sp-dateInput"
+                    name="startDate"
+                    type="date"
+                    min={today}
+                    value={form.startDate}
+                    onChange={onChange}
+                    required
+                  />
+                  <span className="sp-dateIcon">  📅 </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="sp-label">End Date</label>
+                <div className="sp-dateWrap">
+                  <input
+                    className="sp-input sp-dateInput"
+                    name="endDate"
+                    type="date"
+                    min={today}
+                    value={form.endDate}
+                    onChange={onChange}
+                    required
+                  />
+                  <span className="sp-dateIcon"> 📅 </span>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="ct-label">Start Date</label>
-            <div className="ct-dateWrap">
-              <input
-                className="ct-input ct-dateInput"
-                name="startDate"
-                type="date"
-                value={form.startDate}
-                onChange={onChange}
-                required
-              />
-              <span className="ct-dateIcon">📅</span>
+            <div className="sp-formActions">
+              <button className="sp-btn" type="submit" disabled={loading}>
+                {loading ? "Creating..." : "Create Tournament"}
+              </button>
+
+              <button
+                className="sp-btnDark"
+                type="button"
+                onClick={() => navigate("/organizer-dashboard")}
+              >
+                Cancel
+              </button>
             </div>
-          </div>
-
-          <div>
-            <label className="ct-label">End Date</label>
-            <div className="ct-dateWrap">
-              <input
-                className="ct-input ct-dateInput"
-                name="endDate"
-                type="date"
-                value={form.endDate}
-                onChange={onChange}
-                required
-              />
-              <span className="ct-dateIcon">📅</span>
-            </div>
-          </div>
-
-          <div className="ct-actions">
-            <button className="ct-btnPrimary" type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Create Tournament"}
-            </button>
-
-            <button
-              className="ct-btnSecondary"
-              type="button"
-              onClick={() => navigate("/organizer-dashboard")}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
