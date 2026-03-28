@@ -1,0 +1,88 @@
+.feedback-page {
+  min-height: 100vh;
+  background: #0b1020;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  font-family: Arial, sans-serif;
+}
+
+.feedback-card {
+  width: 100%;
+  max-width: 600px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 24px;
+}
+
+.feedback-card h2 {
+  margin: 0;
+}
+
+.feedback-card p {
+  margin-top: 8px;
+  color: #c7d2fe;
+}
+
+.feedback-msg {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(79, 70, 229, 0.12);
+  color: #dbeafe;
+}
+
+.feedback-form {
+  margin-top: 18px;
+}
+
+.feedback-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.field {
+  margin-bottom: 14px;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 6px;
+  color: #c7d2fe;
+  font-size: 13px;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.feedback-btn {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  background: #4f46e5;
+  color: white;
+  cursor: pointer;
+}
+
+.feedback-btn:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 700px) {
+  .feedback-grid {
+    grid-template-columns: 1fr;
+  }
+}
