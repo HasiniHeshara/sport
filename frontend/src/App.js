@@ -20,6 +20,7 @@ import BookEquipment from "./pages/Organizer/BookEquipment";
 import Tournaments from "./pages/Tournaments/Tournaments";
 import TournamentDetails from "./pages/Tournaments/TournamentDetails";
 import ParticipantDashboard from "./pages/Participant/ParticipantDashboard";
+import Feedback from "./pages/FeedbackForm/FeedbackForm";
 
 import Profile from "./pages/Profile/Profile";
 
@@ -65,6 +66,8 @@ export default function App() {
           path="/equipment-management"
           element={<EquipmentAllocationManagement />}
         />
+
+        <Route path="/feedbackform" element={<Feedback />} />
       </Routes>
 
     </BrowserRouter>

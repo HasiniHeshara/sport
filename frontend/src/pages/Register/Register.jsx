@@ -47,11 +47,10 @@ export default function Register() {
     if (!form.email.trim()) return "Email is required";
     if (!form.password.trim()) return "Password is required";
 
-    // IT number must start with IT/it and contain 8 digits
-    if (!/^IT\d{8}$/i.test(form.itNumber.trim())) {
-      return "IT Number must start with IT and include 8 digits (example: IT12345678)";
+   // IT number must start with IT / IE / BM and contain 8 digits after that
+    if (!/^(IT|IE|BM)\d{8}$/i.test(form.itNumber.trim())) {
+    return "IT Number must start with IT, IE, or BM and include 8 digits (example: IT12345678)";
     }
-
     // contact number must be exactly 10 digits
     if (!/^\d{10}$/.test(form.contactNumber)) {
       return "Contact number must be exactly 10 digits";

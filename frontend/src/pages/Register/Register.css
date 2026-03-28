@@ -80,13 +80,27 @@
   padding: 11px 12px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.06);
   color: #787878;
   outline: none;
 }
 
 .field input::placeholder{
   color: rgba(187, 188, 190, 0.65);
+}
+
+.field select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #1e293b;
+  color: white;
+}
+
+.field select option {
+  background: #1e293b;
+  color: white;
 }
 
 .register-btn {
