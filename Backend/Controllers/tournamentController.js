@@ -5,8 +5,6 @@ const User = require("../Models/userModel");
 /**
  * Extract first valid 24-hex Mongo ObjectId from any string.
  * (Fixes hidden \ or " problems from Postman)
- * ✅ Bulletproof ObjectId extractor:
- * - extracts the first 24-hex chars anywhere inside the string
  */
 const extractObjectId = (value = "") => {
   const str = String(value).trim();
@@ -14,7 +12,8 @@ const extractObjectId = (value = "") => {
   return match ? match[0] : null;
 };
 
-const escapeRegex = (value = "") => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const escapeRegex = (value = "") =>
+  String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // ✅ Create Tournament (Organizer)
 exports.createTournament = async (req, res) => {
@@ -29,6 +28,7 @@ exports.createTournament = async (req, res) => {
       registrationDeadline,
       teamLimit,
       registrationFee,
+      rules,
     } = req.body;
 
     const cleanOrganizerId = extractObjectId(req.user?.userId || organizerId || "");
@@ -48,14 +48,15 @@ exports.createTournament = async (req, res) => {
 
     const tournament = await Tournament.create({
       organizerId: cleanOrganizerId,
-      sportType,
-      title,
-      venue,
+      sportType: String(sportType).trim(),
+      title: String(title).trim(),
+      venue: String(venue).trim(),
       startDate,
       endDate,
       registrationDeadline,
-      teamLimit,
-      registrationFee: registrationFee || 0,
+      teamLimit: Number(teamLimit),
+      registrationFee: Number(registrationFee || 0),
+      rules: String(rules || "").trim(),
       status: "Draft",
     });
 
@@ -64,7 +65,6 @@ exports.createTournament = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
 
 // ✅ Update Tournament (Organizer)
 exports.updateTournament = async (req, res) => {
@@ -75,17 +75,49 @@ exports.updateTournament = async (req, res) => {
     );
 
     if (!cleanId) {
-      return res.status(400).json({ message: "Invalid tournament id", received: req.params.id });
+      return res.status(400).json({
+        message: "Invalid tournament id",
+        received: req.params.id,
+      });
     }
 
-    // ✅ only allow update by owner organizer
+    const updateData = {
+      ...req.body,
+    };
+
+    if (typeof updateData.sportType === "string") {
+      updateData.sportType = updateData.sportType.trim();
+    }
+
+    if (typeof updateData.title === "string") {
+      updateData.title = updateData.title.trim();
+    }
+
+    if (typeof updateData.venue === "string") {
+      updateData.venue = updateData.venue.trim();
+    }
+
+    if (typeof updateData.rules === "string") {
+      updateData.rules = updateData.rules.trim();
+    }
+
+    if (updateData.teamLimit !== undefined) {
+      updateData.teamLimit = Number(updateData.teamLimit);
+    }
+
+    if (updateData.registrationFee !== undefined) {
+      updateData.registrationFee = Number(updateData.registrationFee);
+    }
+
     const updated = await Tournament.findOneAndUpdate(
       { _id: cleanId, ...(cleanOrganizerId ? { organizerId: cleanOrganizerId } : {}) },
-      req.body,
-      { new: true }
+      updateData,
+      { new: true, runValidators: true }
     );
 
-    if (!updated) return res.status(404).json({ message: "Tournament not found" });
+    if (!updated) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
 
     res.json({ message: "Tournament updated", tournament: updated });
   } catch (error) {
@@ -98,14 +130,18 @@ exports.publishTournament = async (req, res) => {
   try {
     const cleanId = extractObjectId(req.params.id);
     const cleanOrganizerId = extractObjectId(req.user?.userId || "");
-    console.log("PUBLISH rawId:", req.params.id, "cleanId:", cleanId);
 
     if (!cleanId) {
-      return res.status(400).json({ message: "Invalid tournament id", received: req.params.id });
+      return res.status(400).json({
+        message: "Invalid tournament id",
+        received: req.params.id,
+      });
     }
 
     const tournament = await Tournament.findById(cleanId);
-    if (!tournament) return res.status(404).json({ message: "Tournament not found" });
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
 
     if (!cleanOrganizerId || String(tournament.organizerId) !== cleanOrganizerId) {
       return res.status(403).json({ message: "Forbidden: not owner of this tournament" });
@@ -125,12 +161,18 @@ exports.unpublishTournament = async (req, res) => {
   try {
     const cleanId = extractObjectId(req.params.id);
     const cleanOrganizerId = extractObjectId(req.user?.userId || "");
+
     if (!cleanId) {
-      return res.status(400).json({ message: "Invalid tournament id", received: req.params.id });
+      return res.status(400).json({
+        message: "Invalid tournament id",
+        received: req.params.id,
+      });
     }
 
     const tournament = await Tournament.findById(cleanId);
-    if (!tournament) return res.status(404).json({ message: "Tournament not found" });
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
 
     if (!cleanOrganizerId || String(tournament.organizerId) !== cleanOrganizerId) {
       return res.status(403).json({ message: "Forbidden: not owner of this tournament" });
@@ -150,12 +192,18 @@ exports.closeTournament = async (req, res) => {
   try {
     const cleanId = extractObjectId(req.params.id);
     const cleanOrganizerId = extractObjectId(req.user?.userId || "");
+
     if (!cleanId) {
-      return res.status(400).json({ message: "Invalid tournament id", received: req.params.id });
+      return res.status(400).json({
+        message: "Invalid tournament id",
+        received: req.params.id,
+      });
     }
 
     const tournament = await Tournament.findById(cleanId);
-    if (!tournament) return res.status(404).json({ message: "Tournament not found" });
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
 
     if (!cleanOrganizerId || String(tournament.organizerId) !== cleanOrganizerId) {
       return res.status(403).json({ message: "Forbidden: not owner of this tournament" });
@@ -170,17 +218,23 @@ exports.closeTournament = async (req, res) => {
   }
 };
 
-// ✅ Delete Tournament (any status)
+// ✅ Delete Tournament
 exports.deleteTournament = async (req, res) => {
   try {
     const cleanId = extractObjectId(req.params.id);
     const cleanOrganizerId = extractObjectId(req.user?.userId || "");
+
     if (!cleanId) {
-      return res.status(400).json({ message: "Invalid tournament id", received: req.params.id });
+      return res.status(400).json({
+        message: "Invalid tournament id",
+        received: req.params.id,
+      });
     }
 
     const tournament = await Tournament.findById(cleanId);
-    if (!tournament) return res.status(404).json({ message: "Tournament not found" });
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
 
     if (!cleanOrganizerId || String(tournament.organizerId) !== cleanOrganizerId) {
       return res.status(403).json({ message: "Forbidden: not owner of this tournament" });
@@ -196,17 +250,21 @@ exports.deleteTournament = async (req, res) => {
 // ✅ Get Published Tournaments
 exports.getPublishedTournaments = async (req, res) => {
   try {
-    const tournaments = await Tournament.find({ status: "Published" }).sort({ createdAt: -1 });
+    const tournaments = await Tournament.find({ status: "Published" }).sort({
+      createdAt: -1,
+    });
+
     res.json(tournaments);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-// ✅ Get My Tournaments (using organizerId query for now)
+// ✅ Get My Tournaments
 exports.getMyTournaments = async (req, res) => {
   try {
     const cleanOrganizerId = extractObjectId(req.user?.userId || req.query.organizerId || "");
+
     if (!cleanOrganizerId) {
       return res.status(400).json({
         message: "Invalid organizerId",
@@ -224,6 +282,33 @@ exports.getMyTournaments = async (req, res) => {
   }
 };
 
+// ✅ Get one tournament by id
+exports.getTournamentById = async (req, res) => {
+  try {
+    const cleanId = extractObjectId(req.params.id);
+
+    if (!cleanId) {
+      return res.status(400).json({
+        message: "Invalid tournament id",
+        received: req.params.id,
+      });
+    }
+
+    const tournament = await Tournament.findById(cleanId).populate(
+      "organizerId",
+      "name email"
+    );
+
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+
+    res.json(tournament);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 // ✅ Participant: register team to a tournament
 exports.registerTeam = async (req, res) => {
   try {
@@ -231,7 +316,10 @@ exports.registerTeam = async (req, res) => {
     const cleanLeaderId = extractObjectId(req.user?.userId || "");
 
     if (!cleanTournamentId) {
-      return res.status(400).json({ message: "Invalid tournament id", received: req.params.id });
+      return res.status(400).json({
+        message: "Invalid tournament id",
+        received: req.params.id,
+      });
     }
 
     if (!cleanLeaderId) {
@@ -259,7 +347,9 @@ exports.registerTeam = async (req, res) => {
     const { teamName, contactNumber, members } = req.body;
 
     if (!teamName || !contactNumber || !Array.isArray(members) || members.length === 0) {
-      return res.status(400).json({ message: "teamName, contactNumber and members are required" });
+      return res.status(400).json({
+        message: "teamName, contactNumber and members are required",
+      });
     }
 
     const cleanMembers = members
@@ -274,9 +364,14 @@ exports.registerTeam = async (req, res) => {
       return res.status(400).json({ message: "At least one valid member is required" });
     }
 
-    const uniqueMemberItNumbers = new Set(cleanMembers.map((m) => m.itNumber.toLowerCase()));
+    const uniqueMemberItNumbers = new Set(
+      cleanMembers.map((m) => m.itNumber.toLowerCase())
+    );
+
     if (uniqueMemberItNumbers.size !== cleanMembers.length) {
-      return res.status(400).json({ message: "Duplicate member IT numbers are not allowed" });
+      return res.status(400).json({
+        message: "Duplicate member IT numbers are not allowed",
+      });
     }
 
     const alreadyRegistered = await TeamRegistration.findOne({
@@ -285,16 +380,23 @@ exports.registerTeam = async (req, res) => {
     });
 
     if (alreadyRegistered) {
-      return res.status(400).json({ message: "You have already registered a team for this tournament" });
+      return res.status(400).json({
+        message: "You have already registered a team for this tournament",
+      });
     }
 
     const duplicateTeamName = await TeamRegistration.findOne({
       tournamentId: cleanTournamentId,
-      teamName: { $regex: `^${escapeRegex(String(teamName).trim())}$`, $options: "i" },
+      teamName: {
+        $regex: `^${escapeRegex(String(teamName).trim())}$`,
+        $options: "i",
+      },
     });
 
     if (duplicateTeamName) {
-      return res.status(400).json({ message: "Team name already exists for this tournament" });
+      return res.status(400).json({
+        message: "Team name already exists for this tournament",
+      });
     }
 
     const currentCount = await TeamRegistration.countDocuments({
@@ -322,8 +424,11 @@ exports.registerTeam = async (req, res) => {
     });
   } catch (error) {
     if (error?.code === 11000) {
-      return res.status(400).json({ message: "You have already registered a team for this tournament" });
+      return res.status(400).json({
+        message: "You have already registered a team for this tournament",
+      });
     }
+
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -335,7 +440,10 @@ exports.getMyTeamRegistration = async (req, res) => {
     const cleanLeaderId = extractObjectId(req.user?.userId || "");
 
     if (!cleanTournamentId) {
-      return res.status(400).json({ message: "Invalid tournament id", received: req.params.id });
+      return res.status(400).json({
+        message: "Invalid tournament id",
+        received: req.params.id,
+      });
     }
 
     if (!cleanLeaderId) {
@@ -348,7 +456,9 @@ exports.getMyTeamRegistration = async (req, res) => {
     });
 
     if (!registration) {
-      return res.status(404).json({ message: "No registration found for this tournament" });
+      return res.status(404).json({
+        message: "No registration found for this tournament",
+      });
     }
 
     res.json(registration);
@@ -361,12 +471,16 @@ exports.getMyTeamRegistration = async (req, res) => {
 exports.getMyRegistrations = async (req, res) => {
   try {
     const cleanLeaderId = extractObjectId(req.user?.userId || "");
+
     if (!cleanLeaderId) {
       return res.status(401).json({ message: "Invalid participant identity" });
     }
 
     const registrations = await TeamRegistration.find({ leaderId: cleanLeaderId })
-      .populate("tournamentId", "title sportType venue startDate endDate registrationDeadline status")
+      .populate(
+        "tournamentId",
+        "title sportType venue startDate endDate registrationDeadline status rules"
+      )
       .sort({ createdAt: -1 });
 
     res.json(registrations);
@@ -382,7 +496,10 @@ exports.getTournamentRegistrations = async (req, res) => {
     const cleanOrganizerId = extractObjectId(req.user?.userId || "");
 
     if (!cleanTournamentId) {
-      return res.status(400).json({ message: "Invalid tournament id", received: req.params.id });
+      return res.status(400).json({
+        message: "Invalid tournament id",
+        received: req.params.id,
+      });
     }
 
     const tournament = await Tournament.findById(cleanTournamentId);
@@ -424,7 +541,9 @@ exports.updateMyRejectedRegistration = async (req, res) => {
     }
 
     if (registration.status !== "Rejected") {
-      return res.status(400).json({ message: "Only rejected registrations can be updated" });
+      return res.status(400).json({
+        message: "Only rejected registrations can be updated",
+      });
     }
 
     const tournament = await Tournament.findById(registration.tournamentId);
@@ -437,8 +556,11 @@ exports.updateMyRejectedRegistration = async (req, res) => {
     }
 
     const { teamName, contactNumber, members } = req.body;
+
     if (!teamName || !contactNumber || !Array.isArray(members) || members.length === 0) {
-      return res.status(400).json({ message: "teamName, contactNumber and members are required" });
+      return res.status(400).json({
+        message: "teamName, contactNumber and members are required",
+      });
     }
 
     const cleanMembers = members
@@ -456,11 +578,16 @@ exports.updateMyRejectedRegistration = async (req, res) => {
     const duplicateTeamName = await TeamRegistration.findOne({
       _id: { $ne: cleanRegistrationId },
       tournamentId: registration.tournamentId,
-      teamName: { $regex: `^${escapeRegex(String(teamName).trim())}$`, $options: "i" },
+      teamName: {
+        $regex: `^${escapeRegex(String(teamName).trim())}$`,
+        $options: "i",
+      },
     });
 
     if (duplicateTeamName) {
-      return res.status(400).json({ message: "Team name already exists for this tournament" });
+      return res.status(400).json({
+        message: "Team name already exists for this tournament",
+      });
     }
 
     registration.teamName = String(teamName).trim();
@@ -471,7 +598,10 @@ exports.updateMyRejectedRegistration = async (req, res) => {
 
     await registration.save();
 
-    res.json({ message: "Registration updated and submitted for approval", registration });
+    res.json({
+      message: "Registration updated and submitted for approval",
+      registration,
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -536,6 +666,7 @@ exports.rejectRegistration = async (req, res) => {
     }
 
     const reason = String(req.body?.reason || "").trim();
+
     if (!reason) {
       return res.status(400).json({ message: "Rejection reason is required" });
     }
