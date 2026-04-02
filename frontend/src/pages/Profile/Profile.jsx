@@ -103,11 +103,17 @@ export default function Profile() {
     }
   };
 
-    const handleLogout = () => {
+
+
+  const handleLogout = () => {
+  const confirmLogout = window.confirm("Are you sure you want to logout?");
+  
+  if (confirmLogout) {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/");
-  };
+  }
+};
 
 
 
@@ -204,9 +210,9 @@ export default function Profile() {
         {form.role === "organizer" && (
           <>
             <div className="activity-summary">
-              <span>Draft: {activities.draftCount || 0}</span>
-              <span>Published: {activities.publishedCount || 0}</span>
-              <span>Closed: {activities.closedCount || 0}</span>
+              <span className="draft-badge">Draft: {activities.draftCount || 0}</span>
+              <span className="published-badge">Published: {activities.publishedCount || 0}</span>
+              <span className="closed-badge">Closed: {activities.closedCount || 0}</span>
             </div>
 
             <ul>

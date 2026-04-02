@@ -9,11 +9,28 @@
   gap: 20px;
 }
 
+.profile-card,
+.activity-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 20px;
+}
+
 .profile-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+}
+
+.profile-header h2 {
+  margin: 0;
+}
+
+.profile-header p {
+  margin-top: 6px;
+  color: #c7d2fe;
 }
 
 .logout-btn {
@@ -28,23 +45,6 @@
 
 .logout-btn:hover {
   opacity: 0.9;
-}
-
-.profile-card,
-.activity-card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 18px;
-  padding: 20px;
-}
-
-.profile-header h2 {
-  margin: 0;
-}
-
-.profile-header p {
-  margin-top: 6px;
-  color: #c7d2fe;
 }
 
 .profile-msg {
@@ -66,6 +66,10 @@
   margin-bottom: 14px;
 }
 
+.field {
+  width: 100%;
+}
+
 .field label {
   display: block;
   margin-bottom: 6px;
@@ -73,13 +77,18 @@
   font-size: 13px;
 }
 
-.it-input {
+.field input {
   width: 100%;
   padding: 12px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.05);
   color: white;
+  box-sizing: border-box;
+}
+
+.field input::placeholder {
+  color: #94a3b8;
 }
 
 .profile-actions {
@@ -123,14 +132,17 @@
   font-size: 13px;
 }
 
+.draft-badge,
 .pending-badge {
   background: #f59e0b;
 }
 
+.published-badge,
 .approved-badge {
   background: #22c55e;
 }
 
+.closed-badge,
 .rejected-badge {
   background: #ef4444;
 }
