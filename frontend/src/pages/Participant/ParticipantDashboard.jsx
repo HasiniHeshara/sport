@@ -152,28 +152,6 @@ export default function ParticipantDashboard() {
     saveNotifications([]);
   };
 
-  const handlePayNow = (tournament, registration) => {
-    navigate("/payment-options", {
-      state: {
-        tournamentTitle:
-          tournament?.title || registration?.tournamentId?.title || "Tournament",
-        sportType:
-          tournament?.sportType ||
-          registration?.tournamentId?.sportType ||
-          "-",
-        venue:
-          tournament?.venue || registration?.tournamentId?.venue || "-",
-        teamName: registration?.teamName || "My Team",
-        registrationId: registration?._id || "",
-        amount:
-          tournament?.registrationFee ||
-          registration?.tournamentId?.registrationFee ||
-          1500,
-        status: registration?.status || "Approved",
-      },
-    });
-  };
-
   return (
     <div className="sp-page">
       <header className="home-nav">
@@ -322,7 +300,7 @@ export default function ParticipantDashboard() {
                       <button
                         type="button"
                         className="pay-now-btn"
-                        onClick={() => handlePayNow(t, reg)}
+                        onClick={() => navigate("/my-registrations")}
                       >
                         Pay Now
                       </button>
@@ -395,7 +373,7 @@ export default function ParticipantDashboard() {
                       <button
                         type="button"
                         className="pay-now-btn"
-                        onClick={() => handlePayNow(t, r)}
+                        onClick={() => navigate("/my-registrations")}
                       >
                         Pay Now
                       </button>
