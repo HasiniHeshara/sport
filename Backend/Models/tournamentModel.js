@@ -53,6 +53,12 @@ const tournamentSchema = new mongoose.Schema(
       min: 0,
     },
 
+    rules: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     status: {
       type: String,
       enum: ["Draft", "Published", "Closed"],

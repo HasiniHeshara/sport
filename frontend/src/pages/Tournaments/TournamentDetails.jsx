@@ -305,6 +305,26 @@ export default function TournamentDetails() {
               {formatDate(tournament.registrationDeadline)}
             </div>
             <div><b>Team Limit:</b> {tournament.teamLimit}</div>
+            <div><b>Fee:</b> {tournament.registrationFee}</div>
+          </div>
+
+          <div style={{ marginTop: "18px" }}>
+            <h3 className="sp-cardTitle" style={{ fontSize: "18px", marginBottom: "10px" }}>
+              Tournament Rules
+            </h3>
+
+            {tournament.rules?.trim() ? (
+              <div
+                className="sp-meta"
+                style={{ whiteSpace: "pre-line", lineHeight: "1.7" }}
+              >
+                {tournament.rules}
+              </div>
+            ) : (
+              <div className="sp-empty" style={{ marginTop: 0 }}>
+                No rules added for this tournament.
+              </div>
+            )}
           </div>
         </div>
 
