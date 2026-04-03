@@ -4,9 +4,25 @@ import "./AdminDashboard.css";
 const AdminDashboard = () => {
   const navigate = useNavigate();
 
+  const handleLogout = () => {
+    const confirmLogout = window.confirm("Are you sure you want to logout?");
+
+    if (confirmLogout) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("admin");
+      navigate("/");
+    }
+  };
+
   return (
     <div className="admin-dashboard">
-      <h2 className="admin-title">Admin Dashboard</h2>
+      <div className="admin-header">
+        <h2 className="admin-title">Admin Dashboard</h2>
+        <button className="admin-logout-btn" onClick={handleLogout}>
+          Logout
+        </button>
+      </div>
 
       <div className="admin-card-container">
         <div className="admin-card" onClick={() => navigate("/adminusers")}>
@@ -22,23 +38,20 @@ const AdminDashboard = () => {
           <p>Add, edit, delete, and manage sports equipment records</p>
         </div>
 
-         
         <div className="admin-card" onClick={() => navigate("/feedback")}>
           <h3>Manage User Feedbacks</h3>
-          <p> Check and maintain user feddbacks </p>
+          <p>Check and maintain user feedbacks</p>
         </div>
 
-         <div className="admin-card" onClick={() => navigate("/paymentDetails")}>
+        <div className="admin-card" onClick={() => navigate("/paymentDetails")}>
           <h3>Manage Payments</h3>
-          <p> Verify payment receipts</p>
+          <p>Verify payment receipts</p>
         </div>
 
-         <div className="admin-card" onClick={() => navigate("/admin-chats")}>
-          <h3>Manage User chats</h3>
-          <p> chat with users</p>
+        <div className="admin-card" onClick={() => navigate("/admin-chats")}>
+          <h3>Manage User Chats</h3>
+          <p>Chat with users</p>
         </div>
-
-        
       </div>
     </div>
   );
