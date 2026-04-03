@@ -311,6 +311,7 @@ export default function OrganizerTournamentDashboard() {
           <Link to="/tournaments" className="nav-link">Tournaments</Link>
           <Link to="/about" className="nav-link">About</Link>
           <Link to="/contact" className="nav-link">Contact</Link>
+          <Link to="/participant-chats" className="nav-link">Chats</Link>
           <Link to="/profile" className="nav-link">Profile</Link>
         </nav>
       </header>

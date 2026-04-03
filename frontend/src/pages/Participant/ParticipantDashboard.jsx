@@ -324,6 +324,22 @@ export default function ParticipantDashboard() {
                         Pay Now
                       </button>
                     )}
+
+                    {reg?.status === "Approved" && (
+                      <button
+                        type="button"
+                        className="pay-now-btn"
+                        onClick={() => {
+                          if (!t?._id) {
+                            alert("Tournament ID not found");
+                            return;
+                          }
+                          navigate(`/participant/tournament-chat/${t._id}`);
+                        }}
+                      >
+                        Chat with organizer
+                      </button>
+                    )}
                   </div>
                 </div>
               );

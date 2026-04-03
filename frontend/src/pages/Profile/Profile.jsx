@@ -24,6 +24,7 @@ export default function Profile() {
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(true);
 
+  
   const fetchProfile = useCallback(async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/users/profile", {
@@ -132,6 +133,8 @@ export default function Profile() {
       navigate("/");
     }
   };
+
+
 
   if (loading) {
     return <div className="profile-page">Loading profile...</div>;
