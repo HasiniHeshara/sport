@@ -155,17 +155,22 @@
   }
 }
 
-.field-hint {
+.field-hint,
+small.field-hint {
   display: block;
-  margin-top: 6px;
-  color: #9ca3af;
-  font-size: 13px;
+  margin-top: 8px;
+  color: #ff9b9b !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  line-height: 1.4;
 }
 
-.field-error {
+.field-error,
+small.field-error {
   display: block;
-  margin-top: 6px;
-  color: #f87171;
-  font-size: 13px;
-  font-weight: 600;
+  margin-top: 8px;
+  color: #ff7f7f !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 1.4;
 }
