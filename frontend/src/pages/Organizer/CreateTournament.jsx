@@ -24,67 +24,155 @@ export default function CreateTournament() {
     rules: "",
   });
 
+  const [errors, setErrors] = useState({
+    sportType: "",
+    title: "",
+    venue: "",
+    registrationDeadline: "",
+    startDate: "",
+    endDate: "",
+    teamLimit: "",
+    registrationFee: "",
+    rules: "",
+  });
+
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const validateSingleField = (name, value, updatedForm = form) => {
+    switch (name) {
+      case "sportType":
+        if (!String(value).trim()) return "Sport Type is required";
+        return "";
+
+      case "title":
+        if (!String(value).trim()) return "Title is required";
+        if (String(value).trim().length < 3) return "Title must be at least 3 characters";
+        return "";
+
+      case "venue":
+        if (!String(value).trim()) return "Venue is required";
+        if (String(value).trim().length < 3) return "Venue must be at least 3 characters";
+        return "";
+
+      case "teamLimit":
+        if (value === "" || value === null) return "Team Limit is required";
+        if (Number(value) < 2) return "Team Limit must be at least 2";
+        return "";
+
+      case "registrationFee":
+        if (Number(value || 0) < 0) return "Registration Fee cannot be negative";
+        return "";
+
+      case "registrationDeadline":
+        if (!value) return "Registration Deadline is required";
+        if (value < today) return "Registration Deadline cannot be a past date";
+        if (updatedForm.startDate && new Date(value) >= new Date(updatedForm.startDate)) {
+          return "Registration Deadline must be before Start Date";
+        }
+        return "";
+
+      case "startDate":
+        if (!value) return "Start Date is required";
+        if (value < today) return "Start Date cannot be a past date";
+        if (updatedForm.endDate && new Date(value) > new Date(updatedForm.endDate)) {
+          return "Start Date cannot be after End Date";
+        }
+        if (
+          updatedForm.registrationDeadline &&
+          new Date(updatedForm.registrationDeadline) >= new Date(value)
+        ) {
+          return "Start Date must be after Registration Deadline";
+        }
+        return "";
+
+      case "endDate":
+        if (!value) return "End Date is required";
+        if (value < today) return "End Date cannot be a past date";
+        if (updatedForm.startDate && new Date(updatedForm.startDate) > new Date(value)) {
+          return "End Date must be after Start Date";
+        }
+        return "";
+
+      case "rules":
+        if (String(value).trim().length > 1000) {
+          return "Tournament Rules cannot exceed 1000 characters";
+        }
+        return "";
+
+      default:
+        return "";
+    }
+  };
+
+  const validateAllFields = (updatedForm = form) => {
+    return {
+      sportType: validateSingleField("sportType", updatedForm.sportType, updatedForm),
+      title: validateSingleField("title", updatedForm.title, updatedForm),
+      venue: validateSingleField("venue", updatedForm.venue, updatedForm),
+      registrationDeadline: validateSingleField(
+        "registrationDeadline",
+        updatedForm.registrationDeadline,
+        updatedForm
+      ),
+      startDate: validateSingleField("startDate", updatedForm.startDate, updatedForm),
+      endDate: validateSingleField("endDate", updatedForm.endDate, updatedForm),
+      teamLimit: validateSingleField("teamLimit", updatedForm.teamLimit, updatedForm),
+      registrationFee: validateSingleField(
+        "registrationFee",
+        updatedForm.registrationFee,
+        updatedForm
+      ),
+      rules: validateSingleField("rules", updatedForm.rules, updatedForm),
+    };
+  };
 
   const onChange = (e) => {
     const { name, value } = e.target;
 
+    let finalValue = value;
+
     if (name === "registrationFee") {
-      const onlyNumbers = value.replace(/[^0-9]/g, "");
-      setForm((p) => ({ ...p, [name]: onlyNumbers }));
-      return;
+      finalValue = value.replace(/[^0-9]/g, "");
     }
 
-    setForm((p) => ({ ...p, [name]: value }));
+    if (name === "teamLimit") {
+      finalValue = value.replace(/[^0-9]/g, "");
+    }
+
+    const updatedForm = {
+      ...form,
+      [name]: finalValue,
+    };
+
+    setForm(updatedForm);
+
+    const updatedErrors = {
+      ...errors,
+      [name]: validateSingleField(name, finalValue, updatedForm),
+    };
+
+    if (name === "registrationDeadline" || name === "startDate" || name === "endDate") {
+      updatedErrors.registrationDeadline = validateSingleField(
+        "registrationDeadline",
+        updatedForm.registrationDeadline,
+        updatedForm
+      );
+      updatedErrors.startDate = validateSingleField(
+        "startDate",
+        updatedForm.startDate,
+        updatedForm
+      );
+      updatedErrors.endDate = validateSingleField("endDate", updatedForm.endDate, updatedForm);
+    }
+
+    setErrors(updatedErrors);
   };
 
   const blockInvalidNumberKeys = (e) => {
     if (["e", "E", "+", "-", "."].includes(e.key)) {
       e.preventDefault();
     }
-  };
-
-  const validateForm = () => {
-    if (!form.sportType.trim()) return "Sport Type is required";
-    if (!form.title.trim()) return "Title is required";
-    if (!form.venue.trim()) return "Venue is required";
-
-    if (form.title.trim().length < 3) return "Title must be at least 3 characters";
-    if (form.venue.trim().length < 3) return "Venue must be at least 3 characters";
-
-    if (Number(form.teamLimit) < 2) return "Team Limit must be at least 2";
-    if (Number(form.registrationFee || 0) < 0) return "Registration Fee cannot be negative";
-
-    if (!form.registrationDeadline) return "Registration Deadline is required";
-    if (!form.startDate) return "Start Date is required";
-    if (!form.endDate) return "End Date is required";
-
-    if (form.registrationDeadline < today) {
-      return "Registration Deadline cannot be a past date";
-    }
-
-    if (form.startDate < today) {
-      return "Start Date cannot be a past date";
-    }
-
-    if (form.endDate < today) {
-      return "End Date cannot be a past date";
-    }
-
-    if (new Date(form.startDate) > new Date(form.endDate)) {
-      return "Start Date cannot be after End Date";
-    }
-
-    if (new Date(form.registrationDeadline) >= new Date(form.startDate)) {
-      return "Registration Deadline must be before Start Date";
-    }
-
-    if (form.rules.trim().length > 1000) {
-      return "Tournament Rules cannot exceed 1000 characters";
-    }
-
-    return "";
   };
 
   const submit = async (e) => {
@@ -96,9 +184,12 @@ export default function CreateTournament() {
       return;
     }
 
-    const error = validateForm();
-    if (error) {
-      setMsg(error);
+    const finalErrors = validateAllFields(form);
+    setErrors(finalErrors);
+
+    const hasErrors = Object.values(finalErrors).some((error) => error);
+    if (hasErrors) {
+      setMsg("Please fix the errors below.");
       return;
     }
 
@@ -130,7 +221,9 @@ export default function CreateTournament() {
             <p className="sp-subtitle">Fill details and save as Draft.</p>
           </div>
 
-          <Link className="sp-link" to="/organizer-dashboard">← Back</Link>
+          <Link className="sp-link" to="/organizer-dashboard">
+            ← Back
+          </Link>
         </div>
 
         {msg && <p className="sp-error">{msg}</p>}
@@ -145,8 +238,8 @@ export default function CreateTournament() {
                   name="sportType"
                   value={form.sportType}
                   onChange={onChange}
-                  required
                 />
+                {errors.sportType && <p className="sp-fieldError">{errors.sportType}</p>}
               </div>
 
               <div>
@@ -156,8 +249,8 @@ export default function CreateTournament() {
                   name="title"
                   value={form.title}
                   onChange={onChange}
-                  required
                 />
+                {errors.title && <p className="sp-fieldError">{errors.title}</p>}
               </div>
 
               <div>
@@ -167,8 +260,8 @@ export default function CreateTournament() {
                   name="venue"
                   value={form.venue}
                   onChange={onChange}
-                  required
                 />
+                {errors.venue && <p className="sp-fieldError">{errors.venue}</p>}
               </div>
 
               <div>
@@ -181,8 +274,8 @@ export default function CreateTournament() {
                   value={form.teamLimit}
                   onChange={onChange}
                   onKeyDown={blockInvalidNumberKeys}
-                  required
                 />
+                {errors.teamLimit && <p className="sp-fieldError">{errors.teamLimit}</p>}
               </div>
 
               <div>
@@ -197,6 +290,9 @@ export default function CreateTournament() {
                   onChange={onChange}
                   onKeyDown={blockInvalidNumberKeys}
                 />
+                {errors.registrationFee && (
+                  <p className="sp-fieldError">{errors.registrationFee}</p>
+                )}
               </div>
 
               <div>
@@ -209,10 +305,12 @@ export default function CreateTournament() {
                     min={today}
                     value={form.registrationDeadline}
                     onChange={onChange}
-                    required
                   />
                   <span className="sp-dateIcon">📅 </span>
                 </div>
+                {errors.registrationDeadline && (
+                  <p className="sp-fieldError">{errors.registrationDeadline}</p>
+                )}
               </div>
 
               <div>
@@ -225,10 +323,10 @@ export default function CreateTournament() {
                     min={today}
                     value={form.startDate}
                     onChange={onChange}
-                    required
                   />
                   <span className="sp-dateIcon">📅 </span>
                 </div>
+                {errors.startDate && <p className="sp-fieldError">{errors.startDate}</p>}
               </div>
 
               <div>
@@ -241,10 +339,10 @@ export default function CreateTournament() {
                     min={today}
                     value={form.endDate}
                     onChange={onChange}
-                    required
                   />
                   <span className="sp-dateIcon">📅 </span>
                 </div>
+                {errors.endDate && <p className="sp-fieldError">{errors.endDate}</p>}
               </div>
 
               <div style={{ gridColumn: "1 / -1" }}>
@@ -261,6 +359,7 @@ Example:
 - All players must bring student ID
 - Late registrations are not allowed`}
                 />
+                {errors.rules && <p className="sp-fieldError">{errors.rules}</p>}
               </div>
             </div>
 
