@@ -2,6 +2,9 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const http = require("http");
+const { Server } = require("socket.io");
+
 const connectDB = require("./config/db");
 const userRoutes = require("./Routes/userRoutes");
 const equipmentRoutes = require("./Routes/equipmentRoutes");
@@ -12,7 +15,6 @@ const paymentRoutes = require("./Routes/paymentRoutes");
 const notificationRoutes = require("./Routes/notificationRoutes");
 const chatRoutes = require("./Routes/chatRoutes");
 const matchDrawRoutes = require("./Routes/matchDrawRoutes");
-const path = require("path");
 
 connectDB();
 
@@ -32,7 +34,6 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api", matchDrawRoutes);
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const server = http.createServer(app);
 
@@ -59,7 +60,7 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(
     `Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`
   );
