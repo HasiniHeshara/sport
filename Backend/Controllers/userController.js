@@ -102,6 +102,52 @@ const loginUser = async (req, res) => {
   }
 };
 
+// Admin login
+const adminLogin = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const adminUser = await User.findOne({ email });
+
+    if (!adminUser) {
+      return res.status(400).json({ message: "Invalid admin email or password" });
+    }
+
+    if (adminUser.role !== "admin") {
+      return res.status(403).json({ message: "Access denied. Admin only." });
+    }
+
+    const isMatch = await bcrypt.compare(password, adminUser.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid admin email or password" });
+    }
+
+    const token = jwt.sign(
+      { userId: adminUser._id, role: adminUser.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.json({
+      message: "Admin logged in successfully",
+      token,
+      user: {
+        id: adminUser._id,
+        itNumber: adminUser.itNumber,
+        name: adminUser.name,
+        year: adminUser.year,
+        faculty: adminUser.faculty,
+        contactNumber: adminUser.contactNumber,
+        email: adminUser.email,
+        role: adminUser.role,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 // Get all users
 const getAllUsers = async (req, res) => {
   try {
@@ -238,7 +284,6 @@ const updateUserProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // check email uniqueness
     if (email && email !== user.email) {
       const emailExists = await User.findOne({ email });
       if (emailExists) {
@@ -246,7 +291,6 @@ const updateUserProfile = async (req, res) => {
       }
     }
 
-    // check IT number uniqueness
     if (itNumber && itNumber !== user.itNumber) {
       const itExists = await User.findOne({ itNumber });
       if (itExists) {
@@ -306,6 +350,7 @@ const deleteUserProfile = async (req, res) => {
 module.exports = {
   registerUser,
   loginUser,
+  adminLogin,
   getAllUsers,
   getUserById,
   updateUser,

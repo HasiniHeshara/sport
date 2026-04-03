@@ -9,19 +9,20 @@ import AdminUsers from "./pages/AdminUser/AdminUser";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import EquipmentAllocationManagement from "./pages/Equipment/EquipmentAllocationManagement";
 
-// ✅ Organizer pages
+// Organizer pages
 import OrganizerTournamentDashboard from "./pages/Organizer/OrganizerTournamentDashboard";
 import CreateTournament from "./pages/Organizer/CreateTournament";
 import EditTournament from "./pages/Organizer/EditTournament";
 import OrganizerTournamentRegistrations from "./pages/Organizer/OrganizerTournamentRegistrations";
 import BookEquipment from "./pages/Organizer/BookEquipment";
 
-// ✅ Public tournaments list page
+// Public pages
 import Tournaments from "./pages/Tournaments/Tournaments";
 import TournamentDetails from "./pages/Tournaments/TournamentDetails";
 import ParticipantDashboard from "./pages/Participant/ParticipantDashboard";
+import PaymentOptions from "./pages/Participant/PaymentOptions";
+import PaymentDetails from "./pages/Admin/PaymentDetails";
 import Feedback from "./pages/FeedbackForm/FeedbackForm";
-
 import Profile from "./pages/Profile/Profile";
 
 import UserChat from "./pages/UserChat/UserChat";
@@ -50,31 +51,27 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
-        {/* Organizer */}
         <Route path="/organizer-dashboard" element={<OrganizerTournamentDashboard />} />
         <Route path="/organizer/tournaments/new" element={<CreateTournament />} />
         <Route path="/organizer/tournaments/:id/edit" element={<EditTournament />} />
         <Route path="/organizer/tournaments/:id/registrations" element={<OrganizerTournamentRegistrations />} />
         <Route path="/organizer/tournaments/:id/book-equipment" element={<BookEquipment />} />
 
-        {/* Participant */}
         <Route path="/participant-dashboard" element={<ParticipantDashboard />} />
+        <Route path="/payment-options" element={<PaymentOptions />} />
 
         <Route path="/profile" element={<Profile />} />
 
         <Route path="/adminlogin" element={<AdminLogin />} />
         <Route path="/adminusers" element={<AdminUsers />} />
         <Route path="/admindashboard" element={<AdminDashboard />} />
-        <Route
-          path="/equipment-management"
-          element={<EquipmentAllocationManagement />}
-        />
+        <Route path="/paymentDetails" element={<PaymentDetails />} />
+        <Route path="/equipment-management" element={<EquipmentAllocationManagement />} />
 
         <Route path="/feedbackform" element={<Feedback />} />
         <Route path="/chat" element={<UserChat />} />
         <Route path="/admin-chats" element={<AdminChatManage />} />
       </Routes>
-
     </BrowserRouter>
   );
 }

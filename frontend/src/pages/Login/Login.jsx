@@ -39,43 +39,20 @@ export default function Login() {
     try {
       setLoading(true);
 
-      // Hardcoded admin login
-      const adminEmail = "admin@sportix.com";
-      const adminPassword = "admin123";
-
-      if (form.email === adminEmail && form.password === adminPassword) {
-        localStorage.setItem("token", "admin-demo-token");
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            id: "admin001",
-            name: "Admin",
-            email: adminEmail,
-            role: "admin",
-          })
-        );
-
-        setMsg({ type: "success", text: "Admin login successful!" });
-
-        setTimeout(() => {
-          navigate("/admindashboard");
-        }, 800);
-
-        return;
-      }
-
-      // Normal user login
       const res = await axios.post("http://localhost:5000/api/users/login", form);
 
       const { token, user, message } = res.data;
 
+      localStorage.removeItem("admin");
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
       setMsg({ type: "success", text: message || "Login successful!" });
 
       setTimeout(() => {
-        if (user.role === "organizer") {
+        if (user.role === "admin") {
+          navigate("/admindashboard");
+        } else if (user.role === "organizer") {
           navigate("/organizer-dashboard");
         } else if (user.role === "participant") {
           navigate("/participant-dashboard");
