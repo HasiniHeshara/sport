@@ -31,6 +31,7 @@ export default function EditTournament() {
     registrationDeadline: "",
     teamLimit: 2,
     registrationFee: 0,
+    rules: "",
     status: "Draft",
   });
 
@@ -51,6 +52,7 @@ export default function EditTournament() {
         registrationDeadline: toISO(t.registrationDeadline),
         teamLimit: Number(t.teamLimit || 2),
         registrationFee: Number(t.registrationFee || 0),
+        rules: t.rules || "",
         status: t.status || "Draft",
       });
     } catch (err) {
@@ -108,6 +110,10 @@ export default function EditTournament() {
       return "Registration Deadline must be before Start Date.";
     }
 
+    if (form.rules.trim().length > 1000) {
+      return "Tournament Rules cannot exceed 1000 characters.";
+    }
+
     return "";
   };
 
@@ -127,6 +133,7 @@ export default function EditTournament() {
         organizerId,
         teamLimit: Number(form.teamLimit),
         registrationFee: Number(form.registrationFee),
+        rules: form.rules.trim(),
       });
 
       navigate("/organizer-dashboard");
@@ -269,6 +276,18 @@ export default function EditTournament() {
                   />
                   <span className="sp-dateIcon">📅</span>
                 </div>
+              </div>
+
+              <div style={{ gridColumn: "1 / -1" }}>
+                <label className="sp-label">Tournament Rules</label>
+                <textarea
+                  className="sp-input"
+                  name="rules"
+                  value={form.rules}
+                  onChange={onChange}
+                  rows="6"
+                  placeholder="Update tournament rules here"
+                />
               </div>
             </div>
 

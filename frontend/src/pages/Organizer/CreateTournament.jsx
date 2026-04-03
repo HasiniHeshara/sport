@@ -21,6 +21,7 @@ export default function CreateTournament() {
     registrationDeadline: "",
     teamLimit: 2,
     registrationFee: 0,
+    rules: "",
   });
 
   const [msg, setMsg] = useState("");
@@ -79,6 +80,10 @@ export default function CreateTournament() {
       return "Registration Deadline must be before Start Date";
     }
 
+    if (form.rules.trim().length > 1000) {
+      return "Tournament Rules cannot exceed 1000 characters";
+    }
+
     return "";
   };
 
@@ -105,6 +110,7 @@ export default function CreateTournament() {
         organizerId,
         teamLimit: Number(form.teamLimit),
         registrationFee: Number(form.registrationFee || 0),
+        rules: form.rules.trim(),
       });
 
       navigate("/organizer-dashboard");
@@ -221,7 +227,7 @@ export default function CreateTournament() {
                     onChange={onChange}
                     required
                   />
-                  <span className="sp-dateIcon">  📅 </span>
+                  <span className="sp-dateIcon">📅 </span>
                 </div>
               </div>
 
@@ -237,8 +243,24 @@ export default function CreateTournament() {
                     onChange={onChange}
                     required
                   />
-                  <span className="sp-dateIcon"> 📅 </span>
+                  <span className="sp-dateIcon">📅 </span>
                 </div>
+              </div>
+
+              <div style={{ gridColumn: "1 / -1" }}>
+                <label className="sp-label">Tournament Rules</label>
+                <textarea
+                  className="sp-input"
+                  name="rules"
+                  value={form.rules}
+                  onChange={onChange}
+                  rows="6"
+                  placeholder={`Enter tournament rules here...
+Example:
+- Each team must have 5 players
+- All players must bring student ID
+- Late registrations are not allowed`}
+                />
               </div>
             </div>
 

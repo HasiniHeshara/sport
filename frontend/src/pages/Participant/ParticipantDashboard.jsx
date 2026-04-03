@@ -77,9 +77,7 @@ export default function ParticipantDashboard() {
     }
 
     (items || []).forEach((r) => {
-      if (!r?._id) {
-        return;
-      }
+      if (!r?._id) return;
 
       const prevStatus = previous[r._id];
       const nextStatus = String(r.status || "");
@@ -152,6 +150,31 @@ export default function ParticipantDashboard() {
     saveNotifications([]);
   };
 
+  const handlePayNow = (tournament, registration) => {
+    navigate("/payment-options", {
+      state: {
+        tournamentId: tournament?._id || registration?.tournamentId?._id || "",
+        tournamentTitle:
+          tournament?.title || registration?.tournamentId?.title || "Tournament",
+        sportType:
+          tournament?.sportType ||
+          registration?.tournamentId?.sportType ||
+          "-",
+        venue:
+          tournament?.venue || registration?.tournamentId?.venue || "-",
+        teamName: registration?.teamName || "My Team",
+        registrationId: registration?._id || "",
+        participantName: user?.name || user?.fullName || "Participant",
+        participantId: user?.id || user?._id || "guest",
+        amount:
+          tournament?.registrationFee ||
+          registration?.tournamentId?.registrationFee ||
+          1500,
+        status: registration?.status || "Approved",
+      },
+    });
+  };
+
   return (
     <div className="sp-page">
       <header className="home-nav">
@@ -164,21 +187,11 @@ export default function ParticipantDashboard() {
         </div>
 
         <nav className="nav-links">
-          <Link to="/" className="nav-link active">
-            Home
-          </Link>
-          <Link to="/tournaments" className="nav-link">
-            Tournaments
-          </Link>
-          <Link to="/about" className="nav-link">
-            About
-          </Link>
-          <Link to="/contact" className="nav-link">
-            Contact
-          </Link>
-          <Link to="/profile" className="nav-link">
-            Profile
-          </Link>
+          <Link to="/" className="nav-link active">Home</Link>
+          <Link to="/tournaments" className="nav-link">Tournaments</Link>
+          <Link to="/about" className="nav-link">About</Link>
+          <Link to="/contact" className="nav-link">Contact</Link>
+          <Link to="/profile" className="nav-link">Profile</Link>
         </nav>
       </header>
 
@@ -265,12 +278,8 @@ export default function ParticipantDashboard() {
                   </div>
 
                   <div className="sp-meta">
-                    <div>
-                      <b>Sport:</b> {t.sportType}
-                    </div>
-                    <div>
-                      <b>Venue:</b> {t.venue}
-                    </div>
+                    <div><b>Sport:</b> {t.sportType}</div>
+                    <div><b>Venue:</b> {t.venue}</div>
                     <div>
                       <b>Start:</b> {formatDate(t.startDate)} | <b>End:</b>{" "}
                       {formatDate(t.endDate)}
@@ -300,7 +309,7 @@ export default function ParticipantDashboard() {
                       <button
                         type="button"
                         className="pay-now-btn"
-                        onClick={() => navigate("/my-registrations")}
+                        onClick={() => handlePayNow(t, reg)}
                       >
                         Pay Now
                       </button>
@@ -340,19 +349,11 @@ export default function ParticipantDashboard() {
                   </div>
 
                   <div className="sp-meta">
-                    <div>
-                      <b>Team:</b> {r.teamName}
-                    </div>
-                    <div>
-                      <b>Sport:</b> {t.sportType || "-"}
-                    </div>
-                    <div>
-                      <b>Submitted:</b> {formatDate(r.createdAt)}
-                    </div>
+                    <div><b>Team:</b> {r.teamName}</div>
+                    <div><b>Sport:</b> {t.sportType || "-"}</div>
+                    <div><b>Submitted:</b> {formatDate(r.createdAt)}</div>
                     {r.rejectionReason ? (
-                      <div>
-                        <b>Reason:</b> {r.rejectionReason}
-                      </div>
+                      <div><b>Reason:</b> {r.rejectionReason}</div>
                     ) : null}
                   </div>
 
@@ -373,7 +374,7 @@ export default function ParticipantDashboard() {
                       <button
                         type="button"
                         className="pay-now-btn"
-                        onClick={() => navigate("/my-registrations")}
+                        onClick={() => handlePayNow(t, r)}
                       >
                         Pay Now
                       </button>

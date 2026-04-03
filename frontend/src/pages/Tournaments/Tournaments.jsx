@@ -33,7 +33,7 @@ export default function Tournaments() {
   const handleViewDetails = (id) => {
     if (user?.role !== "participant") {
       alert("Please register first as a participant to register a team.");
-      return; // stop page opening
+      return;
     }
 
     navigate(`/tournaments/${id}`);
@@ -81,6 +81,18 @@ export default function Tournaments() {
                     <b>Fee:</b> {t.registrationFee}
                   </div>
                 </div>
+
+                {t.rules?.trim() && (
+                  <div
+                    className="sp-meta"
+                    style={{ marginTop: "12px", whiteSpace: "pre-line", lineHeight: "1.6" }}
+                  >
+                    <b>Tournament Rules:</b>
+                    <div style={{ marginTop: "6px" }}>
+                      {t.rules.length > 180 ? `${t.rules.slice(0, 180)}...` : t.rules}
+                    </div>
+                  </div>
+                )}
 
                 <div className="sp-actions">
                   <button
