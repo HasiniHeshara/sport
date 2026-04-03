@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
-import "../Tournaments/Tournaments.css";
+import "./ParticipantDashboard.css";
 import logoImg from "../../assets/logo.jpg";
 
 const formatDate = (v) => String(v || "").slice(0, 10);
@@ -15,6 +15,12 @@ export default function ParticipantDashboard() {
   const [notifications, setNotifications] = useState([]);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    registrationId: null,
+    teamName: null,
+    isDeleting: false,
+  });
 
   const user = useMemo(() => {
     try {
@@ -139,6 +145,43 @@ export default function ParticipantDashboard() {
     setNotifications(getStoredNotifications());
     load();
   }, []);
+
+  const handleEditMembers = (registrationId, tournamentId) => {
+    navigate(`/tournaments/${tournamentId}`, {
+      state: { editRegistrationId: registrationId },
+    });
+  };
+
+  const openDeleteModal = (registrationId, teamName) => {
+    setDeleteModal({
+      isOpen: true,
+      registrationId,
+      teamName,
+      isDeleting: false,
+    });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal({
+      isOpen: false,
+      registrationId: null,
+      teamName: null,
+      isDeleting: false,
+    });
+  };
+
+  const handleDeleteTeam = async () => {
+    try {
+      setDeleteModal((prev) => ({ ...prev, isDeleting: true }));
+      await api.delete(`/api/registrations/${deleteModal.registrationId}`);
+      setMsg("Team registration deleted successfully.");
+      closeDeleteModal();
+      await load();
+    } catch (err) {
+      setMsg(err.response?.data?.message || "Failed to delete team registration");
+      setDeleteModal((prev) => ({ ...prev, isDeleting: false }));
+    }
+  };
 
   const registrationByTournament = useMemo(() => {
     const map = new Map();
@@ -387,6 +430,23 @@ export default function ParticipantDashboard() {
                     {r.rejectionReason ? (
                       <div><b>Reason:</b> {r.rejectionReason}</div>
                     ) : null}
+                    
+                    {r.status === "Approved" && r.members && r.members.length > 0 && (
+                      <div className="team-members-section">
+                        <b className="team-members-title">Team Members:</b>
+                        <div className="team-members-list">
+                          {r.members.map((member, idx) => (
+                            <div key={idx} className="team-member-card">
+                              <div><b>Name:</b> {member.name}</div>
+                              <div><b>IT Number:</b> {member.itNumber}</div>
+                              {member.contactNumber && (
+                                <div><b>Contact:</b> {member.contactNumber}</div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="sp-actions">
@@ -411,6 +471,30 @@ export default function ParticipantDashboard() {
                         Pay Now
                       </button>
                     )}
+
+                    {r.status === "Approved" && !closed && (
+                      <button
+                        type="button"
+                        className="sp-btn"
+                        onClick={() =>
+                          handleEditMembers(r._id, t._id || r.tournamentId)
+                        }
+                        style={{ marginTop: "6px" }}
+                      >
+                        Edit Members
+                      </button>
+                    )}
+
+                    {r.status === "Approved" && !closed && (
+                      <button
+                        type="button"
+                        className="sp-btnDanger"
+                        onClick={() => openDeleteModal(r._id, r.teamName)}
+                        style={{ marginTop: "6px" }}
+                      >
+                        Delete Team
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -418,6 +502,36 @@ export default function ParticipantDashboard() {
           </div>
         )}
       </div>
+
+      {deleteModal.isOpen && (
+        <div className="sp-modal-overlay" onClick={closeDeleteModal}>
+          <div className="sp-modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3 className="sp-modal-title">Confirm Delete</h3>
+            <p className="sp-modal-message">
+              Are you want to delete team? your payment not refund
+              {deleteModal.teamName ? `: ${deleteModal.teamName}` : ""}
+            </p>
+            <div className="sp-modal-actions">
+              <button
+                type="button"
+                className="sp-btnOutline"
+                onClick={closeDeleteModal}
+                disabled={deleteModal.isDeleting}
+              >
+                Stay
+              </button>
+              <button
+                type="button"
+                className="sp-btnDanger"
+                onClick={handleDeleteTeam}
+                disabled={deleteModal.isDeleting}
+              >
+                {deleteModal.isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -5,7 +5,9 @@ const {
   registerTeam,
   getMyTeamRegistration,
   getMyRegistrations,
-  updateMyRejectedRegistration,
+  getMyRegistrationById,
+  updateMyRegistration,
+  deleteMyRegistration,
 } = require("../Controllers/participantController");
 
 const { protect, authorizeRoles } = require("../middleware/authMiddleware");
@@ -28,11 +30,23 @@ router.get(
   authorizeRoles("participant"),
   getMyRegistrations
 );
+router.get(
+  "/registrations/:registrationId",
+  protect,
+  authorizeRoles("participant"),
+  getMyRegistrationById
+);
 router.put(
   "/registrations/:registrationId",
   protect,
   authorizeRoles("participant"),
-  updateMyRejectedRegistration
+  updateMyRegistration
+);
+router.delete(
+  "/registrations/:registrationId",
+  protect,
+  authorizeRoles("participant"),
+  deleteMyRegistration
 );
 
 module.exports = router;
