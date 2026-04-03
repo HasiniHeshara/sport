@@ -35,6 +35,18 @@ export default function EditTournament() {
     status: "Draft",
   });
 
+  const [errors, setErrors] = useState({
+    sportType: "",
+    title: "",
+    venue: "",
+    registrationDeadline: "",
+    startDate: "",
+    endDate: "",
+    teamLimit: "",
+    registrationFee: "",
+    rules: "",
+  });
+
   const load = async () => {
     try {
       setMsg("");
@@ -67,63 +79,150 @@ export default function EditTournament() {
     // eslint-disable-next-line
   }, [id]);
 
-  const onChange = (e) => {
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+  const validateSingleField = (name, value, updatedForm = form) => {
+    switch (name) {
+      case "sportType":
+        if (!String(value).trim()) return "Sport Type is required.";
+        return "";
+
+      case "title":
+        if (!String(value).trim()) return "Title is required.";
+        if (String(value).trim().length < 3) return "Title must be at least 3 characters.";
+        return "";
+
+      case "venue":
+        if (!String(value).trim()) return "Venue is required.";
+        if (String(value).trim().length < 3) return "Venue must be at least 3 characters.";
+        return "";
+
+      case "teamLimit":
+        if (value === "" || value === null) return "Team Limit is required.";
+        if (Number(value) < 2) return "Team Limit must be at least 2.";
+        return "";
+
+      case "registrationFee":
+        if (Number(value || 0) < 0) return "Registration Fee cannot be negative.";
+        return "";
+
+      case "registrationDeadline":
+        if (!value) return "Registration Deadline is required.";
+        if (updatedForm.startDate && new Date(value) >= new Date(updatedForm.startDate)) {
+          return "Registration Deadline must be before Start Date.";
+        }
+        return "";
+
+      case "startDate":
+        if (!value) return "Start Date is required.";
+        if (updatedForm.endDate && new Date(value) > new Date(updatedForm.endDate)) {
+          return "Start Date cannot be after End Date.";
+        }
+        if (
+          updatedForm.registrationDeadline &&
+          new Date(updatedForm.registrationDeadline) >= new Date(value)
+        ) {
+          return "Start Date must be after Registration Deadline.";
+        }
+        return "";
+
+      case "endDate":
+        if (!value) return "End Date is required.";
+        if (updatedForm.startDate && new Date(updatedForm.startDate) > new Date(value)) {
+          return "End Date must be after Start Date.";
+        }
+        return "";
+
+      case "rules":
+        if (String(value).trim().length > 1000) {
+          return "Tournament Rules cannot exceed 1000 characters.";
+        }
+        return "";
+
+      default:
+        return "";
+    }
   };
 
-  const validateForm = () => {
-    if (!organizerId) return "Please login as organizer first.";
+  const validateAllFields = (updatedForm = form) => {
+    return {
+      sportType: validateSingleField("sportType", updatedForm.sportType, updatedForm),
+      title: validateSingleField("title", updatedForm.title, updatedForm),
+      venue: validateSingleField("venue", updatedForm.venue, updatedForm),
+      registrationDeadline: validateSingleField(
+        "registrationDeadline",
+        updatedForm.registrationDeadline,
+        updatedForm
+      ),
+      startDate: validateSingleField("startDate", updatedForm.startDate, updatedForm),
+      endDate: validateSingleField("endDate", updatedForm.endDate, updatedForm),
+      teamLimit: validateSingleField("teamLimit", updatedForm.teamLimit, updatedForm),
+      registrationFee: validateSingleField(
+        "registrationFee",
+        updatedForm.registrationFee,
+        updatedForm
+      ),
+      rules: validateSingleField("rules", updatedForm.rules, updatedForm),
+    };
+  };
 
-    if (!form.sportType.trim()) return "Sport Type is required.";
-    if (!form.title.trim()) return "Title is required.";
-    if (!form.venue.trim()) return "Venue is required.";
+  const onChange = (e) => {
+    const { name, value } = e.target;
 
-    if (form.title.trim().length < 3) {
-      return "Title must be at least 3 characters.";
+    let finalValue = value;
+
+    if (name === "registrationFee" || name === "teamLimit") {
+      finalValue = value.replace(/[^0-9]/g, "");
     }
 
-    if (form.venue.trim().length < 3) {
-      return "Venue must be at least 3 characters.";
+    const updatedForm = {
+      ...form,
+      [name]: finalValue,
+    };
+
+    setForm(updatedForm);
+
+    const updatedErrors = {
+      ...errors,
+      [name]: validateSingleField(name, finalValue, updatedForm),
+    };
+
+    if (name === "registrationDeadline" || name === "startDate" || name === "endDate") {
+      updatedErrors.registrationDeadline = validateSingleField(
+        "registrationDeadline",
+        updatedForm.registrationDeadline,
+        updatedForm
+      );
+      updatedErrors.startDate = validateSingleField(
+        "startDate",
+        updatedForm.startDate,
+        updatedForm
+      );
+      updatedErrors.endDate = validateSingleField("endDate", updatedForm.endDate, updatedForm);
     }
 
-    if (!form.registrationDeadline) return "Registration Deadline is required.";
-    if (!form.startDate) return "Start Date is required.";
-    if (!form.endDate) return "End Date is required.";
+    setErrors(updatedErrors);
+  };
 
-    if (Number(form.teamLimit) < 2) {
-      return "Team Limit must be at least 2.";
+  const blockInvalidNumberKeys = (e) => {
+    if (["e", "E", "+", "-", "."].includes(e.key)) {
+      e.preventDefault();
     }
-
-    if (Number(form.registrationFee) < 0) {
-      return "Registration Fee cannot be negative.";
-    }
-
-    const deadline = new Date(form.registrationDeadline);
-    const start = new Date(form.startDate);
-    const end = new Date(form.endDate);
-
-    if (start > end) {
-      return "Start Date cannot be after End Date.";
-    }
-
-    if (deadline >= start) {
-      return "Registration Deadline must be before Start Date.";
-    }
-
-    if (form.rules.trim().length > 1000) {
-      return "Tournament Rules cannot exceed 1000 characters.";
-    }
-
-    return "";
   };
 
   const submit = async (e) => {
     e.preventDefault();
     setMsg("");
 
-    const validationError = validateForm();
-    if (validationError) {
-      setMsg(validationError);
+    if (!organizerId) {
+      setMsg("Please login as organizer first.");
+      return;
+    }
+
+    const finalErrors = validateAllFields(form);
+    setErrors(finalErrors);
+
+    const hasErrors = Object.values(finalErrors).some((error) => error);
+    if (hasErrors) {
+      setMsg("Please fix the errors below.");
       return;
     }
 
@@ -132,7 +231,7 @@ export default function EditTournament() {
         ...form,
         organizerId,
         teamLimit: Number(form.teamLimit),
-        registrationFee: Number(form.registrationFee),
+        registrationFee: Number(form.registrationFee || 0),
         rules: form.rules.trim(),
       });
 
@@ -161,7 +260,9 @@ export default function EditTournament() {
             <p className="sp-subtitle">Update details before publishing.</p>
           </div>
 
-          <Link className="sp-link" to="/organizer-dashboard">← Back</Link>
+          <Link className="sp-link" to="/organizer-dashboard">
+            ← Back
+          </Link>
         </div>
 
         {msg && <p className="sp-error">{msg}</p>}
@@ -182,8 +283,8 @@ export default function EditTournament() {
                   name="sportType"
                   value={form.sportType}
                   onChange={onChange}
-                  required
                 />
+                {errors.sportType && <p className="sp-fieldError">{errors.sportType}</p>}
               </div>
 
               <div>
@@ -193,8 +294,8 @@ export default function EditTournament() {
                   name="title"
                   value={form.title}
                   onChange={onChange}
-                  required
                 />
+                {errors.title && <p className="sp-fieldError">{errors.title}</p>}
               </div>
 
               <div>
@@ -204,8 +305,8 @@ export default function EditTournament() {
                   name="venue"
                   value={form.venue}
                   onChange={onChange}
-                  required
                 />
+                {errors.venue && <p className="sp-fieldError">{errors.venue}</p>}
               </div>
 
               <div>
@@ -217,8 +318,9 @@ export default function EditTournament() {
                   min="2"
                   value={form.teamLimit}
                   onChange={onChange}
-                  required
+                  onKeyDown={blockInvalidNumberKeys}
                 />
+                {errors.teamLimit && <p className="sp-fieldError">{errors.teamLimit}</p>}
               </div>
 
               <div>
@@ -230,7 +332,11 @@ export default function EditTournament() {
                   min="0"
                   value={form.registrationFee}
                   onChange={onChange}
+                  onKeyDown={blockInvalidNumberKeys}
                 />
+                {errors.registrationFee && (
+                  <p className="sp-fieldError">{errors.registrationFee}</p>
+                )}
               </div>
 
               <div>
@@ -242,10 +348,12 @@ export default function EditTournament() {
                     type="date"
                     value={form.registrationDeadline}
                     onChange={onChange}
-                    required
                   />
                   <span className="sp-dateIcon">📅</span>
                 </div>
+                {errors.registrationDeadline && (
+                  <p className="sp-fieldError">{errors.registrationDeadline}</p>
+                )}
               </div>
 
               <div>
@@ -257,10 +365,10 @@ export default function EditTournament() {
                     type="date"
                     value={form.startDate}
                     onChange={onChange}
-                    required
                   />
                   <span className="sp-dateIcon">📅</span>
                 </div>
+                {errors.startDate && <p className="sp-fieldError">{errors.startDate}</p>}
               </div>
 
               <div>
@@ -272,10 +380,10 @@ export default function EditTournament() {
                     type="date"
                     value={form.endDate}
                     onChange={onChange}
-                    required
                   />
                   <span className="sp-dateIcon">📅</span>
                 </div>
+                {errors.endDate && <p className="sp-fieldError">{errors.endDate}</p>}
               </div>
 
               <div style={{ gridColumn: "1 / -1" }}>
@@ -288,6 +396,7 @@ export default function EditTournament() {
                   rows="6"
                   placeholder="Update tournament rules here"
                 />
+                {errors.rules && <p className="sp-fieldError">{errors.rules}</p>}
               </div>
             </div>
 

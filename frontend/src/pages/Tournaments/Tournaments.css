@@ -235,6 +235,15 @@
   box-shadow: 0 0 0 4px rgba(255,106,0,.12);
 }
 
+.sp-fieldError{
+  margin-top: 6px;
+  margin-bottom: 0;
+  color: #f87171;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
 .sp-formActions{
   margin-top: 14px;
   display:flex;
