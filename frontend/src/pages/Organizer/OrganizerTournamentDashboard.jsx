@@ -38,28 +38,8 @@ export default function OrganizerTournamentDashboard() {
 
   const organizerId = user?.id || user?._id;
   const organizerName = user?.name || "Organizer";
-  const notificationsKey = `sportix_organizer_notifications_${organizerId || "organizer"}`;
 
   const formatDate = (v) => String(v || "").slice(0, 10);
-
-  const getStoredNotifications = () => {
-    try {
-      const parsed = JSON.parse(localStorage.getItem(notificationsKey) || "[]");
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  };
-
-  const saveNotifications = (items) => {
-    localStorage.setItem(notificationsKey, JSON.stringify(items));
-    setNotifications(items);
-  };
-
-  const clearNotifications = () => {
-    saveNotifications([]);
-    setSuccessMsg("Notifications cleared successfully.");
-  };
 
   const getDaysLeft = (deadline) => {
     if (!deadline) return "N/A";
@@ -92,6 +72,33 @@ export default function OrganizerTournamentDashboard() {
       rejected,
       slotsRemaining,
     };
+  };
+
+  const loadNotifications = async () => {
+    try {
+      const { data } = await api.get("/api/notifications/my");
+      setNotifications(data || []);
+    } catch (error) {
+      console.error("Failed to load organizer notifications", error);
+    }
+  };
+
+  const clearNotifications = async () => {
+    try {
+      const unreadNotifications = notifications.filter((item) => !item.isRead);
+
+      await Promise.all(
+        unreadNotifications.map((item) =>
+          api.patch(`/api/notifications/${item._id}/read`)
+        )
+      );
+
+      setNotifications([]);
+      setSuccessMsg("Notifications cleared successfully.");
+    } catch (error) {
+      console.error("Failed to clear organizer notifications", error);
+      setMsg("Failed to clear notifications.");
+    }
   };
 
   const load = async () => {
@@ -142,8 +149,8 @@ export default function OrganizerTournamentDashboard() {
   };
 
   useEffect(() => {
-    setNotifications(getStoredNotifications());
     load();
+    loadNotifications();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -320,7 +327,14 @@ export default function OrganizerTournamentDashboard() {
           </div>
 
           <div className="org-heroActions">
-            <button type="button" className="org-btn org-btnGhost" onClick={load}>
+            <button
+              type="button"
+              className="org-btn org-btnGhost"
+              onClick={() => {
+                load();
+                loadNotifications();
+              }}
+            >
               {loading ? "Loading..." : "Refresh"}
             </button>
 
@@ -369,8 +383,8 @@ export default function OrganizerTournamentDashboard() {
                 openConfirmModal(
                   "Clear Notifications",
                   "Are you sure you want to clear all notifications?",
-                  () => {
-                    clearNotifications();
+                  async () => {
+                    await clearNotifications();
                     closeConfirmModal();
                   }
                 )
@@ -384,12 +398,16 @@ export default function OrganizerTournamentDashboard() {
             <div className="org-emptyBox">No notifications yet.</div>
           ) : (
             <div className="org-notificationList">
-              {notifications.map((n) => (
-                <div className="org-notificationItem" key={n.id}>
+              {notifications.map((item) => (
+                <div
+                  className={`org-notificationItem ${item.isRead ? "read" : "unread"}`}
+                  key={item._id}
+                >
                   <div className="org-dot" />
                   <div>
-                    <p>{n.text}</p>
-                    <span>{formatDate(n.createdAt)}</span>
+                    <h4>{item.title}</h4>
+                    <p>{item.message}</p>
+                    <span>{new Date(item.createdAt).toLocaleString()}</span>
                   </div>
                 </div>
               ))}
