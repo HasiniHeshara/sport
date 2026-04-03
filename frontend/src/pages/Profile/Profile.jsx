@@ -2,11 +2,13 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Profile.css";
+import { FaComments } from "react-icons/fa";
 
 export default function Profile() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
   const [form, setForm] = useState({
     itNumber: "",
     name: "",
@@ -51,9 +53,27 @@ export default function Profile() {
     }
   }, [token]);
 
+  const fetchUnreadChatCount = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:5000/api/chats/my/unread-count",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setUnreadChatCount(res.data.unreadCount || 0);
+    } catch (error) {
+      console.error("Failed to load unread chat count");
+    }
+  }, [token]);
+
   useEffect(() => {
     fetchProfile();
-  }, [fetchProfile]);
+    fetchUnreadChatCount();
+  }, [fetchProfile, fetchUnreadChatCount]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -103,19 +123,15 @@ export default function Profile() {
     }
   };
 
-
-
   const handleLogout = () => {
-  const confirmLogout = window.confirm("Are you sure you want to logout?");
-  
-  if (confirmLogout) {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/");
-  }
-};
+    const confirmLogout = window.confirm("Are you sure you want to logout?");
 
-
+    if (confirmLogout) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      navigate("/");
+    }
+  };
 
   if (loading) {
     return <div className="profile-page">Loading profile...</div>;
@@ -127,40 +143,78 @@ export default function Profile() {
         <div className="profile-header">
           <div>
             <h2>My Profile</h2>
-            <p>{form.role === "organizer" ? "Organizer Profile" : "Participant Profile"}</p>
+            <p>
+              {form.role === "organizer"
+                ? "Organizer Profile"
+                : "Participant Profile"}
+            </p>
           </div>
 
-          <button className="logout-btn" onClick={handleLogout}>
-            Logout
-          </button>
+          <div className="profile-header-actions">
+            <button
+              className="chat-profile-btn"
+              onClick={() => navigate("/chat")}
+            >
+              <FaComments />
+              {unreadChatCount > 0 && (
+                <span className="chat-count-badge">{unreadChatCount}</span>
+              )}
+            </button>
+
+            <button className="logout-btn" onClick={handleLogout}>
+              Logout
+            </button>
+          </div>
         </div>
 
         {msg && <div className="profile-msg">{msg}</div>}
-
-        
 
         <form onSubmit={handleUpdate} className="profile-form">
           <div className="profile-grid">
             <div className="field">
               <label>IT Number</label>
-              <input type="text" name="itNumber" className="it-input" value={form.itNumber} onChange={handleChange} />
+              <input
+                type="text"
+                name="itNumber"
+                className="it-input"
+                value={form.itNumber}
+                onChange={handleChange}
+              />
             </div>
 
             <div className="field">
               <label>Full Name</label>
-              <input type="text" name="name" className="it-input" value={form.name} onChange={handleChange} />
+              <input
+                type="text"
+                name="name"
+                className="it-input"
+                value={form.name}
+                onChange={handleChange}
+              />
             </div>
           </div>
 
           <div className="profile-grid">
             <div className="field">
               <label>Year</label>
-              <input type="text" name="year" className="it-input" value={form.year} onChange={handleChange} />
+              <input
+                type="text"
+                name="year"
+                className="it-input"
+                value={form.year}
+                onChange={handleChange}
+              />
             </div>
 
             <div className="field">
               <label>Faculty</label>
-              <input type="text" name="faculty" className="it-input" value={form.faculty} onChange={handleChange} />
+              <input
+                type="text"
+                name="faculty"
+                className="it-input"
+                value={form.faculty}
+                onChange={handleChange}
+              />
             </div>
           </div>
 
@@ -170,6 +224,7 @@ export default function Profile() {
               <input
                 type="text"
                 name="contactNumber"
+                className="it-input"
                 value={form.contactNumber}
                 onChange={handleChange}
               />
@@ -177,7 +232,13 @@ export default function Profile() {
 
             <div className="field">
               <label>Email</label>
-              <input type="email" name="email" className="it-input" value={form.email} onChange={handleChange} />
+              <input
+                type="email"
+                name="email"
+                className="it-input"
+                value={form.email}
+                onChange={handleChange}
+              />
             </div>
           </div>
 
@@ -197,7 +258,11 @@ export default function Profile() {
             <button type="submit" className="update-btn">
               Update Profile
             </button>
-            <button type="button" className="delete-btn" onClick={handleDelete}>
+            <button
+              type="button"
+              className="delete-btn"
+              onClick={handleDelete}
+            >
               Delete Account
             </button>
           </div>
@@ -210,9 +275,15 @@ export default function Profile() {
         {form.role === "organizer" && (
           <>
             <div className="activity-summary">
-              <span className="draft-badge">Draft: {activities.draftCount || 0}</span>
-              <span className="published-badge">Published: {activities.publishedCount || 0}</span>
-              <span className="closed-badge">Closed: {activities.closedCount || 0}</span>
+              <span className="draft-badge">
+                Draft: {activities.draftCount || 0}
+              </span>
+              <span className="published-badge">
+                Published: {activities.publishedCount || 0}
+              </span>
+              <span className="closed-badge">
+                Closed: {activities.closedCount || 0}
+              </span>
             </div>
 
             <ul>
@@ -228,15 +299,22 @@ export default function Profile() {
         {form.role === "participant" && (
           <>
             <div className="activity-summary">
-            <span className="pending-badge">Pending: {activities.pendingCount || 0}</span>
-            <span className="approved-badge">Approved: {activities.approvedCount || 0}</span>
-            <span className="rejected-badge">Rejected: {activities.rejectedCount || 0}</span>
+              <span className="pending-badge">
+                Pending: {activities.pendingCount || 0}
+              </span>
+              <span className="approved-badge">
+                Approved: {activities.approvedCount || 0}
+              </span>
+              <span className="rejected-badge">
+                Rejected: {activities.rejectedCount || 0}
+              </span>
             </div>
 
             <ul>
               {(activities.registrations || []).map((r) => (
                 <li key={r._id}>
-                  <strong>{r.tournamentId?.title || "Tournament"}</strong> - {r.status}
+                  <strong>{r.tournamentId?.title || "Tournament"}</strong> -{" "}
+                  {r.status}
                 </li>
               ))}
             </ul>

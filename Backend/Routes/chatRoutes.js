@@ -8,6 +8,7 @@ const {
   getAllChatsForAdmin,
   getChatMessagesForAdmin,
   sendAdminMessage,
+  getMyUnreadAdminCount,
 } = require("../Controllers/chatController");
 
 const { protect } = require("../middleware/authMiddleware");
