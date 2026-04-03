@@ -1,25 +1,29 @@
 require("dotenv").config();
 const express = require("express");
-const connectDB = require("./config/db");
 const cors = require("cors");
+const path = require("path");
 const http = require("http");
 const { Server } = require("socket.io");
 
+const connectDB = require("./config/db");
 const userRoutes = require("./Routes/userRoutes");
 const equipmentRoutes = require("./Routes/equipmentRoutes");
 const allocationRoutes = require("./Routes/allocationRoutes");
 const tournamentRoutes = require("./Routes/tournamentRoutes");
 const registrationRoutes = require("./Routes/registrationRoutes");
 const paymentRoutes = require("./Routes/paymentRoutes");
+const notificationRoutes = require("./Routes/notificationRoutes");
 const chatRoutes = require("./Routes/chatRoutes");
 const matchDrawRoutes = require("./Routes/matchDrawRoutes");
-const path = require("path");
 
 connectDB();
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/api/users", userRoutes);
 app.use("/api/equipment", equipmentRoutes);
@@ -27,9 +31,9 @@ app.use("/api/allocations", allocationRoutes);
 app.use("/api/tournaments", tournamentRoutes);
 app.use("/api/registrations", registrationRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api", matchDrawRoutes);
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const server = http.createServer(app);
 

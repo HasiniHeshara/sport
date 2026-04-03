@@ -1,4 +1,20 @@
 const Payment = require("../Models/paymentModel");
+const Tournament = require("../Models/tournamentModel");
+const Notification = require("../Models/notificationModel");
+
+const getOrganizerIdFromTournament = async (tournamentId) => {
+  const tournament = await Tournament.findById(tournamentId).lean();
+
+  if (!tournament) return null;
+
+  return (
+    tournament.organizer ||
+    tournament.createdBy ||
+    tournament.userId ||
+    tournament.organizerId ||
+    null
+  );
+};
 
 const uploadSlipPayment = async (req, res) => {
   try {
@@ -167,6 +183,20 @@ const verifyPayment = async (req, res) => {
 
     await payment.save();
 
+    const organizerId = await getOrganizerIdFromTournament(payment.tournamentId);
+
+    if (organizerId) {
+      await Notification.create({
+        recipientId: organizerId,
+        recipientRole: "organizer",
+        title: "Payment Verified",
+        message: `Payment for tournament "${payment.tournamentTitle}" by team "${payment.teamName}" has been verified by admin.`,
+        type: "payment",
+        relatedPaymentId: payment._id,
+        relatedTournamentId: payment.tournamentId,
+      });
+    }
+
     res.json({
       message: "Payment verified successfully",
       payment,
@@ -193,6 +223,20 @@ const rejectPayment = async (req, res) => {
     payment.verifiedAt = new Date();
 
     await payment.save();
+
+    const organizerId = await getOrganizerIdFromTournament(payment.tournamentId);
+
+    if (organizerId) {
+      await Notification.create({
+        recipientId: organizerId,
+        recipientRole: "organizer",
+        title: "Payment Rejected",
+        message: `Payment for tournament "${payment.tournamentTitle}" by team "${payment.teamName}" has been rejected by admin.`,
+        type: "payment",
+        relatedPaymentId: payment._id,
+        relatedTournamentId: payment.tournamentId,
+      });
+    }
 
     res.json({
       message: "Payment rejected successfully",
