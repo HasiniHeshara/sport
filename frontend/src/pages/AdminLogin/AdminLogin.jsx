@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../../services/api";
 import "./AdminLogin.css";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    username: "",
+    email: "",
     password: "",
   });
 
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,27 +22,27 @@ export default function AdminLogin() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
-    const hardcodedUsername = "admin";
-    const hardcodedPassword = "admin123";
+    try {
+      setLoading(true);
 
-    if (
-      form.username === hardcodedUsername &&
-      form.password === hardcodedPassword
-    ) {
-      localStorage.setItem(
-        "admin",
-        JSON.stringify({
-          username: hardcodedUsername,
-          role: "admin",
-        })
-      );
+      const { data } = await api.post("/api/users/admin-login", {
+        email: form.email,
+        password: form.password,
+      });
+
+      localStorage.removeItem("admin");
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
       navigate("/admindashboard");
-    } else {
-      setError("Invalid admin username or password");
+    } catch (err) {
+      setError(err.response?.data?.message || "Invalid admin email or password");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,13 +56,13 @@ export default function AdminLogin() {
 
         <form onSubmit={handleSubmit} className="admin-login-form">
           <div className="admin-field">
-            <label>Username</label>
+            <label>Email</label>
             <input
-              type="text"
-              name="username"
-              value={form.username}
+              type="email"
+              name="email"
+              value={form.email}
               onChange={handleChange}
-              placeholder="Enter admin username"
+              placeholder="Enter admin email"
               required
             />
           </div>
@@ -77,8 +79,8 @@ export default function AdminLogin() {
             />
           </div>
 
-          <button type="submit" className="admin-login-btn">
-            Login
+          <button type="submit" className="admin-login-btn" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
       </div>

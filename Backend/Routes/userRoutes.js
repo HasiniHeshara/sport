@@ -13,11 +13,13 @@ const {
   getUserProfile,
   updateUserProfile,
   deleteUserProfile,
+  adminLogin,
+
 } = require("../Controllers/userController");
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
-
+router.post("/admin-login", adminLogin);
 router.get("/profile", protect, getUserProfile);
 router.put("/profile", protect, updateUserProfile);
 router.delete("/profile", protect, deleteUserProfile);

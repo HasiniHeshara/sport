@@ -11,6 +11,7 @@ export default function ParticipantDashboard() {
   const navigate = useNavigate();
   const [tournaments, setTournaments] = useState([]);
   const [registrations, setRegistrations] = useState([]);
+  const [payments, setPayments] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
@@ -101,6 +102,7 @@ export default function ParticipantDashboard() {
         setMsg("Please login as a participant to access this dashboard.");
         setTournaments([]);
         setRegistrations([]);
+        setPayments([]);
         return;
       }
 
@@ -115,6 +117,15 @@ export default function ParticipantDashboard() {
       setTournaments(nextTournaments);
       setRegistrations(nextRegistrations);
       notifyStatusChanges(nextRegistrations);
+
+      try {
+        const pRes = await api.get("/api/payments/my");
+        const nextPayments = pRes.data || [];
+        setPayments(nextPayments);
+      } catch (paymentErr) {
+        console.error("Failed to load payments:", paymentErr);
+        setPayments([]);
+      }
     } catch (err) {
       setMsg(
         err.response?.data?.message || "Failed to load participant dashboard"
@@ -127,7 +138,6 @@ export default function ParticipantDashboard() {
   useEffect(() => {
     setNotifications(getStoredNotifications());
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const registrationByTournament = useMemo(() => {
@@ -140,6 +150,16 @@ export default function ParticipantDashboard() {
     });
     return map;
   }, [registrations]);
+
+  const paymentByRegistration = useMemo(() => {
+    const map = new Map();
+    (payments || []).forEach((p) => {
+      if (p?.registrationId) {
+        map.set(String(p.registrationId), p);
+      }
+    });
+    return map;
+  }, [payments]);
 
   const isClosed = (t) => {
     const deadlinePassed = new Date() > new Date(t.registrationDeadline);
@@ -157,15 +177,13 @@ export default function ParticipantDashboard() {
         tournamentTitle:
           tournament?.title || registration?.tournamentId?.title || "Tournament",
         sportType:
-          tournament?.sportType ||
-          registration?.tournamentId?.sportType ||
-          "-",
+          tournament?.sportType || registration?.tournamentId?.sportType || "-",
         venue:
           tournament?.venue || registration?.tournamentId?.venue || "-",
         teamName: registration?.teamName || "My Team",
         registrationId: registration?._id || "",
         participantName: user?.name || user?.fullName || "Participant",
-        participantId: user?.id || user?._id || "guest",
+        participantEmail: user?.email || "",
         amount:
           tournament?.registrationFee ||
           registration?.tournamentId?.registrationFee ||
@@ -214,11 +232,7 @@ export default function ParticipantDashboard() {
         <div className="sp-formCard" style={{ marginBottom: 14 }}>
           <div className="sp-cardTop">
             <h3 className="sp-cardTitle">Notifications</h3>
-            <button
-              type="button"
-              className="sp-btnOutline"
-              onClick={clearNotifications}
-            >
+            <button type="button" className="sp-btnOutline" onClick={clearNotifications}>
               Clear
             </button>
           </div>
@@ -247,9 +261,7 @@ export default function ParticipantDashboard() {
         </div>
 
         {tournaments.length === 0 ? (
-          <div className="sp-empty">
-            No published tournaments available right now.
-          </div>
+          <div className="sp-empty">No published tournaments available right now.</div>
         ) : (
           <div className="sp-grid">
             {tournaments.map((t) => {
@@ -281,12 +293,10 @@ export default function ParticipantDashboard() {
                     <div><b>Sport:</b> {t.sportType}</div>
                     <div><b>Venue:</b> {t.venue}</div>
                     <div>
-                      <b>Start:</b> {formatDate(t.startDate)} | <b>End:</b>{" "}
-                      {formatDate(t.endDate)}
+                      <b>Start:</b> {formatDate(t.startDate)} | <b>End:</b> {formatDate(t.endDate)}
                     </div>
                     <div>
-                      <b>Deadline:</b> {formatDate(t.registrationDeadline)} |{" "}
-                      <b>Team Limit:</b> {t.teamLimit}
+                      <b>Deadline:</b> {formatDate(t.registrationDeadline)} | <b>Team Limit:</b> {t.teamLimit}
                     </div>
                     {reg && (
                       <div>
@@ -340,6 +350,7 @@ export default function ParticipantDashboard() {
               const closed =
                 new Date() > new Date(t.registrationDeadline) ||
                 t.status !== "Published";
+              const payment = paymentByRegistration.get(String(r._id));
 
               return (
                 <div className="sp-card" key={r._id}>
@@ -352,6 +363,11 @@ export default function ParticipantDashboard() {
                     <div><b>Team:</b> {r.teamName}</div>
                     <div><b>Sport:</b> {t.sportType || "-"}</div>
                     <div><b>Submitted:</b> {formatDate(r.createdAt)}</div>
+                    {payment && (
+                      <div>
+                        <b>Payment Status:</b> {payment.status}
+                      </div>
+                    )}
                     {r.rejectionReason ? (
                       <div><b>Reason:</b> {r.rejectionReason}</div>
                     ) : null}
