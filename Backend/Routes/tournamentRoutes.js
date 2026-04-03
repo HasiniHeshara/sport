@@ -10,8 +10,6 @@ const {
   deleteTournament,
   getPublishedTournaments,
   getMyTournaments,
-  registerTeam,
-  getMyTeamRegistration,
   getTournamentRegistrations,
 } = require("../Controllers/tournamentController");
 
@@ -60,10 +58,6 @@ router.get("/:id", async (req, res) => {
     return res.status(400).json({ message: "Invalid tournament id", error: err.message });
   }
 });
-
-// ✅ Participant team registration flow
-router.post("/:id/register-team", protect, authorizeRoles("participant"), registerTeam);
-router.get("/:id/my-registration", protect, authorizeRoles("participant"), getMyTeamRegistration);
 
 // ✅ Organizer registration management
 router.get("/:id/registrations", protect, authorizeRoles("organizer"), getTournamentRegistrations);
