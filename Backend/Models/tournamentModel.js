@@ -59,6 +59,36 @@ const tournamentSchema = new mongoose.Schema(
       trim: true,
     },
 
+    accountHolderName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    bankName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    accountNumber: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    branchName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    paymentInstructions: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     status: {
       type: String,
       enum: ["Draft", "Published", "Closed"],
