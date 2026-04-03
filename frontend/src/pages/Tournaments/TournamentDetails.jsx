@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useLocation } from "react-router-dom";
 import api from "../../services/api";
 import "./Tournaments.css";
 
@@ -60,11 +60,13 @@ const addOrganizerNotification = (tournament, text) => {
 
 export default function TournamentDetails() {
   const { id } = useParams();
+  const location = useLocation();
   const [tournament, setTournament] = useState(null);
   const [registration, setRegistration] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const user = useMemo(() => {
     try {
@@ -90,7 +92,17 @@ export default function TournamentDetails() {
 
       if (user?.role === "participant") {
         try {
-          const myRes = await api.get(`/api/tournaments/${id}/my-registration`);
+          const editRegistrationId = location.state?.editRegistrationId;
+          
+          let myRes;
+          if (editRegistrationId) {
+            myRes = await api.get(`/api/registrations/${editRegistrationId}`);
+            setIsEditMode(true);
+          } else {
+            myRes = await api.get(`/api/tournaments/${id}/my-registration`);
+            setIsEditMode(false);
+          }
+          
           const reg = myRes.data;
           setRegistration(reg);
           setForm({
@@ -106,6 +118,7 @@ export default function TournamentDetails() {
             throw err;
           }
           setRegistration(null);
+          setIsEditMode(false);
         }
       }
     } catch (err) {
@@ -117,7 +130,7 @@ export default function TournamentDetails() {
 
   useEffect(() => {
     load();
-  }, [id]);
+  }, [id, location.state?.editRegistrationId]);
 
   const isClosed = useMemo(() => {
     if (!tournament) {
@@ -131,6 +144,7 @@ export default function TournamentDetails() {
 
   const canResubmitRejected = registration?.status === "Rejected" && !isClosed;
   const canNewRegister = !registration && !isClosed;
+  const canEditMembers = isEditMode && registration?.status === "Approved" && !isClosed;
 
   const setMember = (index, key, value) => {
     setForm((prev) => {
@@ -210,7 +224,22 @@ export default function TournamentDetails() {
     try {
       setSubmitting(true);
 
-      if (registration?.status === "Rejected") {
+      if (isEditMode && registration?.status === "Approved") {
+        await api.put(`/api/registrations/${registration._id}`, payload);
+        setMsg("Team members updated successfully.");
+
+        addParticipantNotification(
+          user,
+          `Team members updated for ${tournamentResName(tournament)}`
+        );
+
+        addOrganizerNotification(
+          tournament,
+          `${payload.teamName} updated their team members for ${tournamentResName(
+            tournament
+          )}.`
+        );
+      } else if (registration?.status === "Rejected") {
         await api.put(`/api/registrations/${registration._id}`, payload);
         setMsg("Team registration updated and sent to tournament manager for approval.");
 
@@ -330,52 +359,76 @@ export default function TournamentDetails() {
 
         {registration && (
           <div className="sp-formCard" style={{ marginTop: 12 }}>
+            <h3 className="sp-cardTitle" style={{ marginBottom: 12 }}>Your Registration</h3>
             <div className="sp-meta">
+              <div><b>Team Name:</b> {registration.teamName}</div>
+              <div><b>Contact Number:</b> {registration.contactNumber}</div>
               <div><b>Current Status:</b> {registration.status}</div>
               {registration.rejectionReason ? (
                 <div><b>Rejection Reason:</b> {registration.rejectionReason}</div>
               ) : null}
             </div>
+
+            {registration.members && registration.members.length > 0 && (
+              <div className="team-members-section">
+                <b className="team-members-title">Team Members:</b>
+                <div className="team-members-list">
+                  {registration.members.map((member, idx) => (
+                    <div key={idx} className="team-member-card">
+                      <div><b>Name:</b> {member.name}</div>
+                      <div><b>IT Number:</b> {member.itNumber}</div>
+                      {member.contactNumber && (
+                        <div><b>Contact:</b> {member.contactNumber}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {canNewRegister || canResubmitRejected ? (
+        {canNewRegister || canResubmitRejected || canEditMembers ? (
           <div className="sp-formCard">
             <h3 className="sp-cardTitle" style={{ marginBottom: 12 }}>
-              {registration?.status === "Rejected"
+              {canEditMembers
+                ? "Edit Team Members"
+                : registration?.status === "Rejected"
                 ? "Update Team Registration"
                 : "Team Registration"}
             </h3>
 
             <form onSubmit={submit}>
-              <div className="sp-formGrid">
-                <div>
-                  <label className="sp-label">Team Name</label>
-                  <input
-                    className="sp-input"
-                    value={form.teamName}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, teamName: e.target.value }))
-                    }
-                    required
-                  />
-                </div>
+              {!canEditMembers && (
+                <div className="sp-formGrid">
+                  <div>
+                    <label className="sp-label">Team Name</label>
+                    <input
+                      className="sp-input"
+                      value={form.teamName}
+                      onChange={(e) =>
+                        setForm((prev) => ({ ...prev, teamName: e.target.value }))
+                      }
+                      required
+                    />
+                  </div>
 
-                <div>
-                  <label className="sp-label">Leader Contact Number</label>
-                  <input
-                    className="sp-input"
-                    value={form.contactNumber}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        contactNumber: e.target.value,
-                      }))
-                    }
-                    required
-                  />
+                  <div>
+                    <label className="sp-label">Leader Contact Number</label>
+                    <input
+                      className="sp-input"
+                      value={form.contactNumber}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          contactNumber: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div style={{ marginTop: 14 }}>
                 <h4 className="sp-cardTitle" style={{ fontSize: 16 }}>
@@ -439,7 +492,11 @@ export default function TournamentDetails() {
 
               <div className="sp-formActions">
                 <button type="submit" className="sp-btn" disabled={submitting}>
-                  {submitting ? "Submitting..." : "Submit Team Registration"}
+                  {submitting
+                    ? "Submitting..."
+                    : canEditMembers
+                    ? "Update Team Members"
+                    : "Submit Team Registration"}
                 </button>
               </div>
             </form>
