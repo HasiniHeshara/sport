@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { FaRobot } from "react-icons/fa";
+import { FaRobot, FaUserCircle } from "react-icons/fa";
 import "./Home.css";
 
-// ✅ Put these images in: src/assets/
 import hero1 from "../../assets/hero1.jpg";
 import hero2 from "../../assets/hero2.png";
 import hero3 from "../../assets/hero3.jpg";
@@ -19,36 +18,59 @@ const heroImages = [hero1, hero2, hero3];
 export default function Home() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
-  
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
+    const savedUser = JSON.parse(localStorage.getItem("user") || "null");
+    setCurrentUser(savedUser);
+
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroImages.length);
     }, 4500);
+
     return () => clearInterval(interval);
   }, []);
 
+  const handleDashboardOrLogin = () => {
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+
+    if (!token || !user) {
+      navigate("/login");
+      return;
+    }
+
+    if (user.role === "organizer") {
+      navigate("/organizer-dashboard");
+    } else if (user.role === "participant") {
+      navigate("/participant-dashboard");
+    } else if (user.role === "admin") {
+      navigate("/admindashboard");
+    } else {
+      navigate("/login");
+    }
+  };
+
   const handleChatClick = () => {
-  const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user"));
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user") || "null");
 
-  if (!token || !user) {
-    alert("Please login first to chat with admin.");
-    navigate("/login");
-    return;
-  }
+    if (!token || !user) {
+      alert("Please login first to chat.");
+      navigate("/login");
+      return;
+    }
 
-  navigate("/chat");
-};
+    navigate("/chat");
+  };
+
   return (
     <>
-      {/* Floating Chat/Help Button (optional) */}
       <button className="chat-button" onClick={handleChatClick}>
         <FaRobot size={34} />
       </button>
 
       <div className="home-page">
-        {/* Navbar */}
         <header className="home-nav">
           <div className="brand" onClick={() => navigate("/")}>
             <img src={logoImg} alt="Sportix Logo" className="brand-logo" />
@@ -67,16 +89,25 @@ export default function Home() {
           </nav>
 
           <div className="nav-actions">
-            <button className="nav-btn ghost" onClick={() => navigate("/login")}>
-              Login
+            <button className="nav-btn ghost" onClick={handleDashboardOrLogin}>
+              {currentUser ? (
+                <>
+                  <FaUserCircle style={{ marginRight: "6px" }} />
+                  Dashboard
+                </>
+              ) : (
+                "Login"
+              )}
             </button>
-            <button className="nav-btn primary" onClick={() => navigate("/register")}>
-              Register
-            </button>
+
+            {!currentUser && (
+              <button className="nav-btn primary" onClick={() => navigate("/register")}>
+                Register
+              </button>
+            )}
           </div>
         </header>
 
-        {/* Hero Slideshow */}
         <section className="hero-section">
           <div className="hero-slideshow">
             {heroImages.map((img, index) => (
@@ -87,21 +118,36 @@ export default function Home() {
               >
                 <div className="slide-overlay">
                   <h1>Organize & Join Sports Tournaments</h1>
-                  <p>Create tournaments, broadcast details, register teams, and upload payment receipts easily.</p>
+                  <p>
+                    Create tournaments, broadcast details, register teams, and upload
+                    payment receipts easily.
+                  </p>
 
                   <div className="hero-buttons">
                     <button className="cta-button" onClick={() => navigate("/tournaments")}>
                       Browse Tournaments
                     </button>
-                    <button className="cta-button outline" onClick={() => navigate("/register")}>
-                      Create Account
-                    </button>
+
+                    {!currentUser ? (
+                      <button
+                        className="cta-button outline"
+                        onClick={() => navigate("/register")}
+                      >
+                        Create Account
+                      </button>
+                    ) : (
+                      <button
+                        className="cta-button outline"
+                        onClick={handleDashboardOrLogin}
+                      >
+                        Go to Dashboard
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
             ))}
 
-            {/* Dots */}
             <div className="slide-dots">
               {heroImages.map((_, index) => (
                 <span
@@ -114,7 +160,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Features */}
         <section className="features-section">
           <div className="feature-card">
             <img src={feature1} alt="Tournament Creation" />
@@ -131,7 +176,7 @@ export default function Home() {
           <div className="feature-card">
             <img src={feature3} alt="Receipt Payment" />
             <h3>Book Equipments</h3>
-            <p>Organizers can book equipment that need for thier tournamnets.</p>
+            <p>Organizers can book equipment needed for their tournaments.</p>
           </div>
         </section>
 
@@ -142,7 +187,7 @@ export default function Home() {
           </div>
 
           <div className="why-grid">
-             <div className="why-card">
+            <div className="why-card">
               <h3>Simple User Flow</h3>
               <p>From registration to tournament management, every step is easy to follow.</p>
             </div>
@@ -161,9 +206,6 @@ export default function Home() {
           </div>
         </section>
 
-
-
-        {/* Testimonials */}
         <section className="testimonials-section">
           <h2>What Users Say</h2>
 
@@ -186,7 +228,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Footer */}
         <footer className="modern-home-footer">
           <div className="home-footer-content">
             <div className="home-footer-section">
@@ -201,9 +242,9 @@ export default function Home() {
             <div className="home-footer-section">
               <h4>For Organizers</h4>
               <ul>
-                <li><Link to="/organizer/create">Create Tournament</Link></li>
-                <li><Link to="/organizer/dashboard">Organizer Dashboard</Link></li>
-                <li><Link to="/organizer/announcements">Broadcast Updates</Link></li>
+                <li><Link to="/organizer/tournaments/new">Create Tournament</Link></li>
+                <li><Link to="/organizer-dashboard">Organizer Dashboard</Link></li>
+                <li><Link to="/organizer/participant-chats">Participant Chats</Link></li>
               </ul>
             </div>
 

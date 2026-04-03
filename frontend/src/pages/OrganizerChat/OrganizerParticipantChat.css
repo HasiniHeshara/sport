@@ -1,0 +1,158 @@
+.organizer-chat-page {
+  min-height: 100vh;
+  background: #0b1020;
+  color: white;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  font-family: Arial, sans-serif;
+}
+
+.chat-sidebar {
+  border-right: 1px solid rgba(255,255,255,0.1);
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.chat-sidebar h3 {
+  margin-top: 0;
+}
+
+.chat-user {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.chat-user.active-chat {
+  border-color: #f97316;
+}
+
+.chat-user-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.unread-badge {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: white;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.chat-user p,
+.chat-user small {
+  margin: 4px 0 0;
+  color: #c7d2fe;
+}
+
+.chat-main {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.chat-main-head h3 {
+  margin: 0;
+}
+
+.chat-main-head p {
+  margin-top: 6px;
+  color: #c7d2fe;
+}
+
+.chat-organizer-msg {
+  margin-top: 10px;
+  color: #fca5a5;
+}
+
+.chat-main-messages {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 16px;
+}
+
+.message {
+  max-width: 72%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+}
+
+.my-message {
+  background: #f97316;
+  margin-left: auto;
+}
+
+.user-message {
+  background: #334155;
+  margin-right: auto;
+}
+
+.message-name {
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: #dbeafe;
+}
+
+.chat-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.chat-form input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.05);
+  color: white;
+}
+
+.chat-form button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 12px;
+  background: #1d4ed8;
+  color: white;
+  cursor: pointer;
+}
+
+.empty-chat {
+  margin: auto;
+  color: #c7d2fe;
+}
+
+.chat-user-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.unread-badge {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: white;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
