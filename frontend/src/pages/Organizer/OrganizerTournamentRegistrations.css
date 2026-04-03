@@ -388,3 +388,41 @@
     font-size: 28px;
   }
 }
+
+.org-notificationList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.org-notificationItem {
+  border-radius: 12px;
+  padding: 14px;
+  background: #111b47;
+  border-left: 4px solid #f97316;
+}
+
+.org-notificationItem.read {
+  opacity: 0.8;
+}
+
+.org-notificationItem.unread {
+  background: #152257;
+}
+
+.org-notificationItem h4 {
+  margin: 0 0 6px;
+  color: #fff;
+  font-size: 16px;
+}
+
+.org-notificationItem p {
+  margin: 0 0 6px;
+  color: #dbe4ff;
+  font-size: 14px;
+}
+
+.org-notificationItem span {
+  color: #9ca3af;
+  font-size: 12px;
+}

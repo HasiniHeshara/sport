@@ -154,3 +154,23 @@
     grid-template-columns: 1fr;
   }
 }
+
+.field-hint,
+small.field-hint {
+  display: block;
+  margin-top: 8px;
+  color: #ff9b9b !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  line-height: 1.4;
+}
+
+.field-error,
+small.field-error {
+  display: block;
+  margin-top: 8px;
+  color: #ff7f7f !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 1.4;
+}
