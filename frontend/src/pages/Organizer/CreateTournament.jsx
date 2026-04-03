@@ -8,7 +8,6 @@ export default function CreateTournament() {
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const organizerId = user?.id || user?._id;
-
   const today = new Date().toISOString().split("T")[0];
 
   const [form, setForm] = useState({
@@ -22,6 +21,11 @@ export default function CreateTournament() {
     teamLimit: 2,
     registrationFee: 0,
     rules: "",
+    accountHolderName: "",
+    bankName: "",
+    accountNumber: "",
+    branchName: "",
+    paymentInstructions: "",
   });
 
   const [errors, setErrors] = useState({
@@ -34,10 +38,24 @@ export default function CreateTournament() {
     teamLimit: "",
     registrationFee: "",
     rules: "",
+    accountHolderName: "",
+    bankName: "",
+    accountNumber: "",
+    branchName: "",
+    paymentInstructions: "",
   });
 
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const hasAnyPaymentField = (data) =>
+    !!(
+      data.accountHolderName.trim() ||
+      data.bankName.trim() ||
+      data.accountNumber.trim() ||
+      data.branchName.trim() ||
+      data.paymentInstructions.trim()
+    );
 
   const validateSingleField = (name, value, updatedForm = form) => {
     switch (name) {
@@ -56,12 +74,13 @@ export default function CreateTournament() {
         return "";
 
       case "teamLimit":
-        if (value === "" || value === null) return "Team Limit is required";
+        if (String(value).trim() === "") return "Team Limit is required";
         if (Number(value) < 2) return "Team Limit must be at least 2";
         return "";
 
       case "registrationFee":
-        if (Number(value || 0) < 0) return "Registration Fee cannot be negative";
+        if (String(value).trim() === "") return "";
+        if (Number(value) < 0) return "Registration Fee cannot be negative";
         return "";
 
       case "registrationDeadline":
@@ -89,8 +108,8 @@ export default function CreateTournament() {
       case "endDate":
         if (!value) return "End Date is required";
         if (value < today) return "End Date cannot be a past date";
-        if (updatedForm.startDate && new Date(updatedForm.startDate) > new Date(value)) {
-          return "End Date must be after Start Date";
+        if (updatedForm.startDate && new Date(value) < new Date(updatedForm.startDate)) {
+          return "End Date cannot be before Start Date";
         }
         return "";
 
@@ -100,73 +119,140 @@ export default function CreateTournament() {
         }
         return "";
 
+      case "accountHolderName":
+        if (hasAnyPaymentField(updatedForm) && !String(value).trim()) {
+          return "Account Holder Name is required";
+        }
+        return "";
+
+      case "bankName":
+        if (hasAnyPaymentField(updatedForm) && !String(value).trim()) {
+          return "Bank Name is required";
+        }
+        return "";
+
+      case "accountNumber":
+        if (hasAnyPaymentField(updatedForm) && !String(value).trim()) {
+          return "Account Number is required";
+        }
+        return "";
+
+      case "branchName":
+        return "";
+
+      case "paymentInstructions":
+        if (String(value).trim().length > 1000) {
+          return "Payment Instructions cannot exceed 1000 characters";
+        }
+        return "";
+
       default:
         return "";
     }
   };
 
   const validateAllFields = (updatedForm = form) => {
-    return {
-      sportType: validateSingleField("sportType", updatedForm.sportType, updatedForm),
-      title: validateSingleField("title", updatedForm.title, updatedForm),
-      venue: validateSingleField("venue", updatedForm.venue, updatedForm),
-      registrationDeadline: validateSingleField(
-        "registrationDeadline",
-        updatedForm.registrationDeadline,
-        updatedForm
-      ),
-      startDate: validateSingleField("startDate", updatedForm.startDate, updatedForm),
-      endDate: validateSingleField("endDate", updatedForm.endDate, updatedForm),
-      teamLimit: validateSingleField("teamLimit", updatedForm.teamLimit, updatedForm),
-      registrationFee: validateSingleField(
-        "registrationFee",
-        updatedForm.registrationFee,
-        updatedForm
-      ),
-      rules: validateSingleField("rules", updatedForm.rules, updatedForm),
-    };
+    const newErrors = {};
+
+    Object.keys(errors).forEach((key) => {
+      newErrors[key] = validateSingleField(key, updatedForm[key], updatedForm);
+    });
+
+    if (
+      hasAnyPaymentField(updatedForm) &&
+      !updatedForm.accountHolderName.trim()
+    ) {
+      newErrors.accountHolderName = "Account Holder Name is required";
+    }
+
+    if (hasAnyPaymentField(updatedForm) && !updatedForm.bankName.trim()) {
+      newErrors.bankName = "Bank Name is required";
+    }
+
+    if (hasAnyPaymentField(updatedForm) && !updatedForm.accountNumber.trim()) {
+      newErrors.accountNumber = "Account Number is required";
+    }
+
+    return newErrors;
   };
 
   const onChange = (e) => {
     const { name, value } = e.target;
-
     let finalValue = value;
 
-    if (name === "registrationFee") {
+    if (name === "registrationFee" || name === "teamLimit") {
       finalValue = value.replace(/[^0-9]/g, "");
     }
 
-    if (name === "teamLimit") {
-      finalValue = value.replace(/[^0-9]/g, "");
+    if (name === "accountNumber") {
+      finalValue = value.replace(/[^\d\s-]/g, "");
     }
 
-    const updatedForm = {
-      ...form,
-      [name]: finalValue,
-    };
-
+    const updatedForm = { ...form, [name]: finalValue };
     setForm(updatedForm);
 
-    const updatedErrors = {
-      ...errors,
-      [name]: validateSingleField(name, finalValue, updatedForm),
-    };
+    const newErrors = { ...errors };
+    newErrors[name] = validateSingleField(name, finalValue, updatedForm);
 
-    if (name === "registrationDeadline" || name === "startDate" || name === "endDate") {
-      updatedErrors.registrationDeadline = validateSingleField(
+    if (
+      ["registrationDeadline", "startDate", "endDate"].includes(name)
+    ) {
+      newErrors.registrationDeadline = validateSingleField(
         "registrationDeadline",
         updatedForm.registrationDeadline,
         updatedForm
       );
-      updatedErrors.startDate = validateSingleField(
+      newErrors.startDate = validateSingleField(
         "startDate",
         updatedForm.startDate,
         updatedForm
       );
-      updatedErrors.endDate = validateSingleField("endDate", updatedForm.endDate, updatedForm);
+      newErrors.endDate = validateSingleField(
+        "endDate",
+        updatedForm.endDate,
+        updatedForm
+      );
     }
 
-    setErrors(updatedErrors);
+    if (
+      ["accountHolderName", "bankName", "accountNumber", "branchName", "paymentInstructions"].includes(name)
+    ) {
+      newErrors.accountHolderName = validateSingleField(
+        "accountHolderName",
+        updatedForm.accountHolderName,
+        updatedForm
+      );
+      newErrors.bankName = validateSingleField(
+        "bankName",
+        updatedForm.bankName,
+        updatedForm
+      );
+      newErrors.accountNumber = validateSingleField(
+        "accountNumber",
+        updatedForm.accountNumber,
+        updatedForm
+      );
+      newErrors.branchName = validateSingleField(
+        "branchName",
+        updatedForm.branchName,
+        updatedForm
+      );
+      newErrors.paymentInstructions = validateSingleField(
+        "paymentInstructions",
+        updatedForm.paymentInstructions,
+        updatedForm
+      );
+    }
+
+    setErrors(newErrors);
+  };
+
+  const onBlur = (e) => {
+    const { name } = e.target;
+    setErrors((prev) => ({
+      ...prev,
+      [name]: validateSingleField(name, form[name], form),
+    }));
   };
 
   const blockInvalidNumberKeys = (e) => {
@@ -174,6 +260,13 @@ export default function CreateTournament() {
       e.preventDefault();
     }
   };
+
+  const renderError = (field) =>
+    errors[field] ? (
+      <div style={{ color: "#fca5a5", fontSize: "13px", marginTop: "6px", fontWeight: 600 }}>
+        {errors[field]}
+      </div>
+    ) : null;
 
   const submit = async (e) => {
     e.preventDefault();
@@ -184,12 +277,12 @@ export default function CreateTournament() {
       return;
     }
 
-    const finalErrors = validateAllFields(form);
-    setErrors(finalErrors);
+    const newErrors = validateAllFields(form);
+    setErrors(newErrors);
 
-    const hasErrors = Object.values(finalErrors).some((error) => error);
-    if (hasErrors) {
-      setMsg("Please fix the errors below.");
+    const hasError = Object.values(newErrors).some((value) => value);
+    if (hasError) {
+      setMsg("Please fix the highlighted fields.");
       return;
     }
 
@@ -202,6 +295,11 @@ export default function CreateTournament() {
         teamLimit: Number(form.teamLimit),
         registrationFee: Number(form.registrationFee || 0),
         rules: form.rules.trim(),
+        accountHolderName: form.accountHolderName.trim(),
+        bankName: form.bankName.trim(),
+        accountNumber: form.accountNumber.trim(),
+        branchName: form.branchName.trim(),
+        paymentInstructions: form.paymentInstructions.trim(),
       });
 
       navigate("/organizer-dashboard");
@@ -221,9 +319,7 @@ export default function CreateTournament() {
             <p className="sp-subtitle">Fill details and save as Draft.</p>
           </div>
 
-          <Link className="sp-link" to="/organizer-dashboard">
-            ← Back
-          </Link>
+          <Link className="sp-link" to="/organizer-dashboard">← Back</Link>
         </div>
 
         {msg && <p className="sp-error">{msg}</p>}
@@ -238,8 +334,10 @@ export default function CreateTournament() {
                   name="sportType"
                   value={form.sportType}
                   onChange={onChange}
+                  onBlur={onBlur}
+                  required
                 />
-                {errors.sportType && <p className="sp-fieldError">{errors.sportType}</p>}
+                {renderError("sportType")}
               </div>
 
               <div>
@@ -249,8 +347,10 @@ export default function CreateTournament() {
                   name="title"
                   value={form.title}
                   onChange={onChange}
+                  onBlur={onBlur}
+                  required
                 />
-                {errors.title && <p className="sp-fieldError">{errors.title}</p>}
+                {renderError("title")}
               </div>
 
               <div>
@@ -260,8 +360,10 @@ export default function CreateTournament() {
                   name="venue"
                   value={form.venue}
                   onChange={onChange}
+                  onBlur={onBlur}
+                  required
                 />
-                {errors.venue && <p className="sp-fieldError">{errors.venue}</p>}
+                {renderError("venue")}
               </div>
 
               <div>
@@ -273,9 +375,11 @@ export default function CreateTournament() {
                   min="2"
                   value={form.teamLimit}
                   onChange={onChange}
+                  onBlur={onBlur}
                   onKeyDown={blockInvalidNumberKeys}
+                  required
                 />
-                {errors.teamLimit && <p className="sp-fieldError">{errors.teamLimit}</p>}
+                {renderError("teamLimit")}
               </div>
 
               <div>
@@ -288,11 +392,10 @@ export default function CreateTournament() {
                   inputMode="numeric"
                   value={form.registrationFee}
                   onChange={onChange}
+                  onBlur={onBlur}
                   onKeyDown={blockInvalidNumberKeys}
                 />
-                {errors.registrationFee && (
-                  <p className="sp-fieldError">{errors.registrationFee}</p>
-                )}
+                {renderError("registrationFee")}
               </div>
 
               <div>
@@ -305,12 +408,12 @@ export default function CreateTournament() {
                     min={today}
                     value={form.registrationDeadline}
                     onChange={onChange}
+                    onBlur={onBlur}
+                    required
                   />
                   <span className="sp-dateIcon">📅 </span>
                 </div>
-                {errors.registrationDeadline && (
-                  <p className="sp-fieldError">{errors.registrationDeadline}</p>
-                )}
+                {renderError("registrationDeadline")}
               </div>
 
               <div>
@@ -323,10 +426,12 @@ export default function CreateTournament() {
                     min={today}
                     value={form.startDate}
                     onChange={onChange}
+                    onBlur={onBlur}
+                    required
                   />
                   <span className="sp-dateIcon">📅 </span>
                 </div>
-                {errors.startDate && <p className="sp-fieldError">{errors.startDate}</p>}
+                {renderError("startDate")}
               </div>
 
               <div>
@@ -339,10 +444,12 @@ export default function CreateTournament() {
                     min={today}
                     value={form.endDate}
                     onChange={onChange}
+                    onBlur={onBlur}
+                    required
                   />
                   <span className="sp-dateIcon">📅 </span>
                 </div>
-                {errors.endDate && <p className="sp-fieldError">{errors.endDate}</p>}
+                {renderError("endDate")}
               </div>
 
               <div style={{ gridColumn: "1 / -1" }}>
@@ -352,6 +459,7 @@ export default function CreateTournament() {
                   name="rules"
                   value={form.rules}
                   onChange={onChange}
+                  onBlur={onBlur}
                   rows="6"
                   placeholder={`Enter tournament rules here...
 Example:
@@ -359,7 +467,101 @@ Example:
 - All players must bring student ID
 - Late registrations are not allowed`}
                 />
-                {errors.rules && <p className="sp-fieldError">{errors.rules}</p>}
+                {renderError("rules")}
+              </div>
+
+              <div style={{ gridColumn: "1 / -1", marginTop: "4px" }}>
+                <details
+                  style={{
+                    border: "1px solid rgba(148, 163, 184, 0.18)",
+                    borderRadius: "16px",
+                    background: "rgba(255, 255, 255, 0.03)",
+                    padding: "14px 16px",
+                  }}
+                >
+                  <summary
+                    style={{
+                      cursor: "pointer",
+                      fontWeight: 800,
+                      color: "#f8fafc",
+                      marginBottom: "14px",
+                      outline: "none",
+                    }}
+                  >
+                    Payment Information (Optional)
+                  </summary>
+
+                  <div className="sp-formGrid" style={{ marginTop: "14px" }}>
+                    <div>
+                      <label className="sp-label">Account Holder Name</label>
+                      <input
+                        className="sp-input"
+                        name="accountHolderName"
+                        value={form.accountHolderName}
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        placeholder="e.g. Sportix Events"
+                      />
+                      {renderError("accountHolderName")}
+                    </div>
+
+                    <div>
+                      <label className="sp-label">Bank Name</label>
+                      <input
+                        className="sp-input"
+                        name="bankName"
+                        value={form.bankName}
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        placeholder="e.g. BOC / Sampath / HNB"
+                      />
+                      {renderError("bankName")}
+                    </div>
+
+                    <div>
+                      <label className="sp-label">Account Number</label>
+                      <input
+                        className="sp-input"
+                        name="accountNumber"
+                        value={form.accountNumber}
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        placeholder="e.g. 1234567890"
+                      />
+                      {renderError("accountNumber")}
+                    </div>
+
+                    <div>
+                      <label className="sp-label">Branch Name</label>
+                      <input
+                        className="sp-input"
+                        name="branchName"
+                        value={form.branchName}
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        placeholder="e.g. Malabe Branch"
+                      />
+                      {renderError("branchName")}
+                    </div>
+
+                    <div style={{ gridColumn: "1 / -1" }}>
+                      <label className="sp-label">Payment Instructions</label>
+                      <textarea
+                        className="sp-input"
+                        name="paymentInstructions"
+                        value={form.paymentInstructions}
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        rows="4"
+                        placeholder={`Optional instructions...
+Example:
+- Upload payment slip after bank transfer
+- Mention team name in payment note`}
+                      />
+                      {renderError("paymentInstructions")}
+                    </div>
+                  </div>
+                </details>
               </div>
             </div>
 

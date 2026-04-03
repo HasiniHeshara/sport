@@ -10,6 +10,9 @@ const tournamentRoutes = require("./Routes/tournamentRoutes");
 const registrationRoutes = require("./Routes/registrationRoutes");
 const paymentRoutes = require("./Routes/paymentRoutes");
 const notificationRoutes = require("./Routes/notificationRoutes");
+const chatRoutes = require("./Routes/chatRoutes");
+const matchDrawRoutes = require("./Routes/matchDrawRoutes");
+const path = require("path");
 
 connectDB();
 
@@ -27,6 +30,32 @@ app.use("/api/tournaments", tournamentRoutes);
 app.use("/api/registrations", registrationRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/chats", chatRoutes);
+app.use("/api", matchDrawRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+  },
+});
+
+app.set("io", io);
+
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  socket.on("join_chat", (chatId) => {
+    socket.join(chatId);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
 
 const PORT = process.env.PORT || 5000;
 
