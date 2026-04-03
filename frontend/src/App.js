@@ -25,6 +25,9 @@ import PaymentDetails from "./pages/Admin/PaymentDetails";
 import Feedback from "./pages/FeedbackForm/FeedbackForm";
 import Profile from "./pages/Profile/Profile";
 
+import UserChat from "./pages/UserChat/UserChat";
+import AdminChatManage from "./pages/AdminChat/AdminChatManage";
+
 function Placeholder({ title }) {
   return (
     <div style={{ padding: 30, fontFamily: "Arial" }}>
@@ -66,6 +69,8 @@ export default function App() {
         <Route path="/equipment-management" element={<EquipmentAllocationManagement />} />
 
         <Route path="/feedbackform" element={<Feedback />} />
+        <Route path="/chat" element={<UserChat />} />
+        <Route path="/admin-chats" element={<AdminChatManage />} />
       </Routes>
     </BrowserRouter>
   );

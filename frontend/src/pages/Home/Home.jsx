@@ -28,10 +28,22 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleChatClick = () => {
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!token || !user) {
+    alert("Please login first to chat with admin.");
+    navigate("/login");
+    return;
+  }
+
+  navigate("/chat");
+};
   return (
     <>
       {/* Floating Chat/Help Button (optional) */}
-      <button className="chat-button" onClick={() => navigate("/help")}>
+      <button className="chat-button" onClick={handleChatClick}>
         <FaRobot size={34} />
       </button>
 

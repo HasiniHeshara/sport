@@ -8,7 +8,22 @@ export default function OrganizerTournamentDashboard() {
   const [tournaments, setTournaments] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [msg, setMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [sortBy, setSortBy] = useState("Newest");
+
+  const [selectedTournament, setSelectedTournament] = useState(null);
+
+  const [confirmModal, setConfirmModal] = useState({
+    open: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+  });
+
   const navigate = useNavigate();
 
   const user = useMemo(() => {
@@ -41,6 +56,7 @@ export default function OrganizerTournamentDashboard() {
 
   const clearNotifications = () => {
     saveNotifications([]);
+    setSuccessMsg("Notifications cleared successfully.");
   };
 
   const getDaysLeft = (deadline) => {
@@ -129,24 +145,77 @@ export default function OrganizerTournamentDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!successMsg) return;
+    const timer = setTimeout(() => setSuccessMsg(""), 3000);
+    return () => clearTimeout(timer);
+  }, [successMsg]);
+
+  const openConfirmModal = (title, message, onConfirm) => {
+    setConfirmModal({
+      open: true,
+      title,
+      message,
+      onConfirm,
+    });
+  };
+
+  const closeConfirmModal = () => {
+    setConfirmModal({
+      open: false,
+      title: "",
+      message: "",
+      onConfirm: null,
+    });
+  };
+
   const doAction = async (id, action) => {
     try {
       setMsg("");
+      setSuccessMsg("");
+
       await api.patch(`/api/tournaments/${id}/${action}`);
       await load();
+
+      if (action === "publish") {
+        setSuccessMsg("Tournament published successfully.");
+      } else if (action === "unpublish") {
+        setSuccessMsg("Tournament unpublished successfully.");
+      } else if (action === "close") {
+        setSuccessMsg("Tournament closed successfully.");
+      }
+
+      if (selectedTournament?._id === id) {
+        setSelectedTournament((prev) =>
+          prev
+            ? {
+                ...prev,
+                status:
+                  action === "publish"
+                    ? "Published"
+                    : action === "unpublish"
+                    ? "Draft"
+                    : action === "close"
+                    ? "Closed"
+                    : prev.status,
+              }
+            : prev
+        );
+      }
     } catch (err) {
       setMsg(err.response?.data?.message || `Failed to ${action}`);
     }
   };
 
   const deleteTournament = async (id) => {
-    const ok = window.confirm("Delete this tournament?");
-    if (!ok) return;
-
     try {
       setMsg("");
+      setSuccessMsg("");
+
       await api.delete(`/api/tournaments/${id}`);
+      setSelectedTournament(null);
       await load();
+      setSuccessMsg("Tournament deleted successfully.");
     } catch (err) {
       setMsg(err.response?.data?.message || "Delete failed");
     }
@@ -162,6 +231,38 @@ export default function OrganizerTournamentDashboard() {
   const publishedCount = tournaments.filter((t) => t.status === "Published").length;
   const draftCount = tournaments.filter((t) => t.status === "Draft").length;
   const closedCount = tournaments.filter((t) => t.status === "Closed").length;
+
+  const filteredAndSortedTournaments = useMemo(() => {
+    let updated = [...tournaments];
+
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase();
+      updated = updated.filter(
+        (t) =>
+          t.title?.toLowerCase().includes(search) ||
+          t.sportType?.toLowerCase().includes(search) ||
+          t.venue?.toLowerCase().includes(search)
+      );
+    }
+
+    if (statusFilter !== "All") {
+      updated = updated.filter((t) => t.status === statusFilter);
+    }
+
+    if (sortBy === "Newest") {
+      updated.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } else if (sortBy === "Oldest") {
+      updated.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    } else if (sortBy === "Deadline Nearest") {
+      updated.sort(
+        (a, b) => new Date(a.registrationDeadline) - new Date(b.registrationDeadline)
+      );
+    } else if (sortBy === "Title A-Z") {
+      updated.sort((a, b) => a.title.localeCompare(b.title));
+    }
+
+    return updated;
+  }, [tournaments, searchTerm, statusFilter, sortBy]);
 
   return (
     <div className="org-page">
@@ -206,6 +307,7 @@ export default function OrganizerTournamentDashboard() {
         </div>
 
         {msg && <div className="org-alert">{msg}</div>}
+        {successMsg && <div className="org-successAlert">{successMsg}</div>}
 
         <div className="org-stats">
           <div className="org-statCard">
@@ -239,7 +341,16 @@ export default function OrganizerTournamentDashboard() {
             <button
               type="button"
               className="org-btn org-btnOutline"
-              onClick={clearNotifications}
+              onClick={() =>
+                openConfirmModal(
+                  "Clear Notifications",
+                  "Are you sure you want to clear all notifications?",
+                  () => {
+                    clearNotifications();
+                    closeConfirmModal();
+                  }
+                )
+              }
             >
               Clear
             </button>
@@ -269,11 +380,54 @@ export default function OrganizerTournamentDashboard() {
           </div>
         </div>
 
-        {tournaments.length === 0 ? (
-          <div className="org-emptyBox">No tournaments yet.</div>
+        <div className="org-sectionCard">
+          <div className="org-filterGrid">
+            <div>
+              <label className="org-filterLabel">Search</label>
+              <input
+                type="text"
+                className="org-filterInput"
+                placeholder="Search by title, sport, or venue"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="org-filterLabel">Filter by Status</label>
+              <select
+                className="org-filterInput"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="All">All</option>
+                <option value="Draft">Draft</option>
+                <option value="Published">Published</option>
+                <option value="Closed">Closed</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="org-filterLabel">Sort By</label>
+              <select
+                className="org-filterInput"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="Newest">Newest</option>
+                <option value="Oldest">Oldest</option>
+                <option value="Deadline Nearest">Deadline Nearest</option>
+                <option value="Title A-Z">Title A-Z</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {filteredAndSortedTournaments.length === 0 ? (
+          <div className="org-emptyBox">No tournaments found.</div>
         ) : (
           <div className="org-grid">
-            {tournaments.map((t) => {
+            {filteredAndSortedTournaments.map((t) => {
               const status = String(t.status || "").trim();
               const statusClass = `org-badge org-${status.toLowerCase()}`;
               const insights = t.insights || {
@@ -287,89 +441,47 @@ export default function OrganizerTournamentDashboard() {
               return (
                 <div className="org-card" key={t._id}>
                   <div className="org-cardTop">
-                    <div>
+                    <div className="org-titleWrap">
                       <h3>{t.title}</h3>
                       <p className="org-sport">{t.sportType}</p>
                     </div>
                     <span className={statusClass}>{status}</span>
                   </div>
 
-                  <div className="org-infoGrid">
-                    <div className="org-infoItem">
+                  <div className="org-quickInfo">
+                    <div className="org-quickInfoItem">
                       <span>Venue</span>
                       <strong>{t.venue}</strong>
                     </div>
 
-                    <div className="org-infoItem">
-                      <span>Team Limit</span>
-                      <strong>{t.teamLimit}</strong>
-                    </div>
-
-                    <div className="org-infoItem">
-                      <span>Start Date</span>
-                      <strong>{formatDate(t.startDate)}</strong>
-                    </div>
-
-                    <div className="org-infoItem">
-                      <span>End Date</span>
-                      <strong>{formatDate(t.endDate)}</strong>
-                    </div>
-
-                    <div className="org-infoItem">
+                    <div className="org-quickInfoItem">
                       <span>Deadline</span>
                       <strong>{formatDate(t.registrationDeadline)}</strong>
                     </div>
 
-                    <div className="org-infoItem">
-                      <span>Fee</span>
-                      <strong>{t.registrationFee}</strong>
+                    <div className="org-quickInfoItem">
+                      <span>Team Limit</span>
+                      <strong>{t.teamLimit}</strong>
                     </div>
-                  </div>
 
-                  <div className="org-insightGrid">
-                    <div className="org-insightBox">
+                    <div className="org-quickInfoItem">
                       <span>Total Registrations</span>
                       <strong>{insights.total}</strong>
                     </div>
-
-                    <div className="org-insightBox">
-                      <span>Pending</span>
-                      <strong>{insights.pending}</strong>
-                    </div>
-
-                    <div className="org-insightBox">
-                      <span>Approved</span>
-                      <strong>{insights.approved}</strong>
-                    </div>
-
-                    <div className="org-insightBox">
-                      <span>Rejected</span>
-                      <strong>{insights.rejected}</strong>
-                    </div>
-
-                    <div className="org-insightBox">
-                      <span>Slots Remaining</span>
-                      <strong>{insights.slotsRemaining}</strong>
-                    </div>
-
-                    <div className="org-insightBox">
-                      <span>Countdown</span>
-                      <strong>{getDaysLeft(t.registrationDeadline)}</strong>
-                    </div>
                   </div>
 
-                  <div className="org-actions">
-                    <Link className="org-linkBtn" to={`/organizer/tournaments/${t._id}/edit`}>
-                      Edit
-                    </Link>
-
+                  <div className="org-cardFooter">
                     <button
                       type="button"
-                      className="org-linkBtn org-linkSecondary"
-                      onClick={() => goToBookEquipment(t)}
+                      className="org-linkBtn org-btnView"
+                      onClick={() => setSelectedTournament(t)}
                     >
-                      Book Equipment
+                      View Details
                     </button>
+
+                    <Link className="org-linkBtn org-btnEdit" to={`/organizer/tournaments/${t._id}/edit`}>
+                      Edit
+                    </Link>
 
                     <Link
                       className="org-linkBtn org-linkSecondary"
@@ -378,49 +490,254 @@ export default function OrganizerTournamentDashboard() {
                       Team Registrations
                     </Link>
                   </div>
-
-                  <div className="org-actions org-actionsWrap">
-                    <button
-                      className="org-btn org-btnOutline"
-                      type="button"
-                      onClick={() => doAction(t._id, "publish")}
-                      disabled={status === "Published" || status === "Closed"}
-                    >
-                      Publish
-                    </button>
-
-                    <button
-                      className="org-btn org-btnOutline"
-                      type="button"
-                      onClick={() => doAction(t._id, "unpublish")}
-                      disabled={status === "Draft" || status === "Closed"}
-                    >
-                      Unpublish
-                    </button>
-
-                    <button
-                      className="org-btn org-btnDark"
-                      type="button"
-                      onClick={() => doAction(t._id, "close")}
-                      disabled={status === "Closed"}
-                    >
-                      Close
-                    </button>
-
-                    <button
-                      className="org-btn org-btnDanger"
-                      type="button"
-                      onClick={() => deleteTournament(t._id)}
-                    >
-                      Delete
-                    </button>
-                  </div>
                 </div>
               );
             })}
           </div>
         )}
       </div>
+
+      {selectedTournament && (
+        <div className="org-modalOverlay" onClick={() => setSelectedTournament(null)}>
+          <div className="org-modalCard" onClick={(e) => e.stopPropagation()}>
+            <div className="org-modalTop">
+              <div>
+                <h2>{selectedTournament.title}</h2>
+                <p>{selectedTournament.sportType}</p>
+              </div>
+              <button
+                type="button"
+                className="org-btn org-btnDanger"
+                onClick={() => setSelectedTournament(null)}
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="org-cardSection">
+              <div className="org-sectionLabel">Tournament Info</div>
+              <div className="org-infoGrid">
+                <div className="org-infoItem">
+                  <span>Venue</span>
+                  <strong>{selectedTournament.venue}</strong>
+                </div>
+
+                <div className="org-infoItem">
+                  <span>Status</span>
+                  <strong>{selectedTournament.status}</strong>
+                </div>
+
+                <div className="org-infoItem">
+                  <span>Start Date</span>
+                  <strong>{formatDate(selectedTournament.startDate)}</strong>
+                </div>
+
+                <div className="org-infoItem">
+                  <span>End Date</span>
+                  <strong>{formatDate(selectedTournament.endDate)}</strong>
+                </div>
+
+                <div className="org-infoItem">
+                  <span>Registration Deadline</span>
+                  <strong>{formatDate(selectedTournament.registrationDeadline)}</strong>
+                </div>
+
+                <div className="org-infoItem">
+                  <span>Registration Fee</span>
+                  <strong>{selectedTournament.registrationFee}</strong>
+                </div>
+
+                <div className="org-infoItem">
+                  <span>Team Limit</span>
+                  <strong>{selectedTournament.teamLimit}</strong>
+                </div>
+
+                <div className="org-infoItem">
+                  <span>Countdown</span>
+                  <strong>{getDaysLeft(selectedTournament.registrationDeadline)}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="org-cardSection">
+              <div className="org-sectionLabel">Registration Insights</div>
+              <div className="org-insightGrid">
+                <div className="org-insightBox">
+                  <span>Total Registrations</span>
+                  <strong>{selectedTournament.insights?.total || 0}</strong>
+                </div>
+
+                <div className="org-insightBox">
+                  <span>Pending</span>
+                  <strong>{selectedTournament.insights?.pending || 0}</strong>
+                </div>
+
+                <div className="org-insightBox">
+                  <span>Approved</span>
+                  <strong>{selectedTournament.insights?.approved || 0}</strong>
+                </div>
+
+                <div className="org-insightBox">
+                  <span>Rejected</span>
+                  <strong>{selectedTournament.insights?.rejected || 0}</strong>
+                </div>
+
+                <div className="org-insightBox">
+                  <span>Slots Remaining</span>
+                  <strong>{selectedTournament.insights?.slotsRemaining || 0}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="org-cardSection">
+              <div className="org-sectionLabel">Tournament Rules</div>
+              {selectedTournament.rules?.trim() ? (
+                <div className="org-rulesBox">{selectedTournament.rules}</div>
+              ) : (
+                <div className="org-emptyBox" style={{ marginTop: "10px" }}>
+                  No rules added for this tournament.
+                </div>
+              )}
+            </div>
+
+            <div className="org-cardSection">
+              <div className="org-sectionLabel">Management Actions</div>
+              <div className="org-actions org-actionsPrimary">
+                <Link
+                  className="org-linkBtn org-btnEdit"
+                  to={`/organizer/tournaments/${selectedTournament._id}/edit`}
+                >
+                  Edit
+                </Link>
+
+                <button
+                  type="button"
+                  className="org-linkBtn org-linkSecondary"
+                  onClick={() => goToBookEquipment(selectedTournament)}
+                >
+                  Book Equipment
+                </button>
+
+                <Link
+                  className="org-linkBtn org-linkSecondary"
+                  to={`/organizer/tournaments/${selectedTournament._id}/registrations`}
+                >
+                  Team Registrations
+                </Link>
+              </div>
+            </div>
+
+            <div className="org-cardSection">
+              <div className="org-sectionLabel">Status Actions</div>
+              <div className="org-actions org-actionsWrap">
+                <button
+                  className="org-btn org-btnOutline"
+                  type="button"
+                  onClick={() =>
+                    openConfirmModal(
+                      "Publish Tournament",
+                      "Are you sure you want to publish this tournament?",
+                      () => {
+                        doAction(selectedTournament._id, "publish");
+                        closeConfirmModal();
+                      }
+                    )
+                  }
+                  disabled={
+                    selectedTournament.status === "Published" ||
+                    selectedTournament.status === "Closed"
+                  }
+                >
+                  Publish
+                </button>
+
+                <button
+                  className="org-btn org-btnOutline"
+                  type="button"
+                  onClick={() =>
+                    openConfirmModal(
+                      "Unpublish Tournament",
+                      "Are you sure you want to unpublish this tournament?",
+                      () => {
+                        doAction(selectedTournament._id, "unpublish");
+                        closeConfirmModal();
+                      }
+                    )
+                  }
+                  disabled={
+                    selectedTournament.status === "Draft" ||
+                    selectedTournament.status === "Closed"
+                  }
+                >
+                  Unpublish
+                </button>
+
+                <button
+                  className="org-btn org-btnDark"
+                  type="button"
+                  onClick={() =>
+                    openConfirmModal(
+                      "Close Tournament",
+                      "Are you sure you want to close this tournament?",
+                      () => {
+                        doAction(selectedTournament._id, "close");
+                        closeConfirmModal();
+                      }
+                    )
+                  }
+                  disabled={selectedTournament.status === "Closed"}
+                >
+                  Close
+                </button>
+
+                <button
+                  className="org-btn org-btnDanger"
+                  type="button"
+                  onClick={() =>
+                    openConfirmModal(
+                      "Delete Tournament",
+                      "Are you sure you want to delete this tournament? This action cannot be undone.",
+                      () => {
+                        deleteTournament(selectedTournament._id);
+                        closeConfirmModal();
+                      }
+                    )
+                  }
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmModal.open && (
+        <div className="org-modalOverlay" onClick={closeConfirmModal}>
+          <div className="org-confirmCard" onClick={(e) => e.stopPropagation()}>
+            <h3>{confirmModal.title}</h3>
+            <p>{confirmModal.message}</p>
+
+            <div className="org-confirmActions">
+              <button
+                type="button"
+                className="org-btn org-btnOutline"
+                onClick={closeConfirmModal}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="org-btn org-btnPrimary"
+                onClick={confirmModal.onConfirm}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
