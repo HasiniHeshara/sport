@@ -16,6 +16,8 @@ export default function OrganizerTournamentDashboard() {
   const [sortBy, setSortBy] = useState("Newest");
 
   const [selectedTournament, setSelectedTournament] = useState(null);
+  const [matchDraw, setMatchDraw] = useState(null);
+  const [drawMsg, setDrawMsg] = useState("");
 
   const [confirmModal, setConfirmModal] = useState({
     open: false,
@@ -151,6 +153,33 @@ export default function OrganizerTournamentDashboard() {
     return () => clearTimeout(timer);
   }, [successMsg]);
 
+  const loadMatchDraw = async (tournamentId) => {
+    try {
+      setDrawMsg("");
+      const res = await api.get(`/api/tournaments/${tournamentId}/match-draw`);
+      setMatchDraw(res.data);
+    } catch (err) {
+      setMatchDraw(null);
+      if (err.response?.status !== 404) {
+        setDrawMsg(err.response?.data?.message || "Failed to load match draw");
+      }
+    }
+  };
+
+  const createMatchDraw = async (tournamentId) => {
+    try {
+      setMsg("");
+      setSuccessMsg("");
+      setDrawMsg("");
+
+      const res = await api.post(`/api/tournaments/${tournamentId}/match-draw`);
+      setMatchDraw(res.data.matchDraw);
+      setSuccessMsg("Match draw generated successfully.");
+    } catch (err) {
+      setDrawMsg(err.response?.data?.message || "Failed to generate match draw");
+    }
+  };
+
   const openConfirmModal = (title, message, onConfirm) => {
     setConfirmModal({
       open: true,
@@ -214,17 +243,12 @@ export default function OrganizerTournamentDashboard() {
 
       await api.delete(`/api/tournaments/${id}`);
       setSelectedTournament(null);
+      setMatchDraw(null);
       await load();
       setSuccessMsg("Tournament deleted successfully.");
     } catch (err) {
       setMsg(err.response?.data?.message || "Delete failed");
     }
-  };
-
-  const goToBookEquipment = (tournament) => {
-    navigate(`/organizer/tournaments/${tournament._id}/book-equipment`, {
-      state: { tournament },
-    });
   };
 
   const totalTournaments = tournaments.length;
@@ -474,7 +498,10 @@ export default function OrganizerTournamentDashboard() {
                     <button
                       type="button"
                       className="org-linkBtn org-btnView"
-                      onClick={() => setSelectedTournament(t)}
+                      onClick={() => {
+                        setSelectedTournament(t);
+                        loadMatchDraw(t._id);
+                      }}
                     >
                       View Details
                     </button>
@@ -508,7 +535,11 @@ export default function OrganizerTournamentDashboard() {
               <button
                 type="button"
                 className="org-btn org-btnDanger"
-                onClick={() => setSelectedTournament(null)}
+                onClick={() => {
+                  setSelectedTournament(null);
+                  setMatchDraw(null);
+                  setDrawMsg("");
+                }}
               >
                 Close
               </button>
@@ -603,20 +634,20 @@ export default function OrganizerTournamentDashboard() {
             <div className="org-cardSection">
               <div className="org-sectionLabel">Management Actions</div>
               <div className="org-actions org-actionsPrimary">
+                <button
+                  type="button"
+                  className="org-linkBtn org-btnView"
+                  onClick={() => createMatchDraw(selectedTournament._id)}
+                >
+                  Create Match Draw
+                </button>
+
                 <Link
                   className="org-linkBtn org-btnEdit"
                   to={`/organizer/tournaments/${selectedTournament._id}/edit`}
                 >
                   Edit
                 </Link>
-
-                <button
-                  type="button"
-                  className="org-linkBtn org-linkSecondary"
-                  onClick={() => goToBookEquipment(selectedTournament)}
-                >
-                  Book Equipment
-                </button>
 
                 <Link
                   className="org-linkBtn org-linkSecondary"
@@ -625,6 +656,29 @@ export default function OrganizerTournamentDashboard() {
                   Team Registrations
                 </Link>
               </div>
+            </div>
+
+            <div className="org-cardSection">
+              <div className="org-sectionLabel">Match Draw</div>
+
+              {drawMsg && <div className="org-alert">{drawMsg}</div>}
+
+              {matchDraw?.matches?.length > 0 ? (
+                <div className="org-drawList">
+                  {matchDraw.matches.map((match) => (
+                    <div className="org-drawItem" key={match.matchNumber}>
+                      <span className="org-drawRound">{match.roundName}</span>
+                      <strong>
+                        Match {match.matchNumber}: {match.teamA} vs {match.teamB}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="org-emptyBox" style={{ marginTop: "10px" }}>
+                  No match draw created yet.
+                </div>
+              )}
             </div>
 
             <div className="org-cardSection">

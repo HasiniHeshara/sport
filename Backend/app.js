@@ -11,8 +11,9 @@ const allocationRoutes = require("./Routes/allocationRoutes");
 const tournamentRoutes = require("./Routes/tournamentRoutes");
 const registrationRoutes = require("./Routes/registrationRoutes");
 const paymentRoutes = require("./Routes/paymentRoutes");
-const path = require("path");
 const chatRoutes = require("./Routes/chatRoutes");
+const matchDrawRoutes = require("./Routes/matchDrawRoutes");
+const path = require("path");
 
 connectDB();
 
@@ -25,9 +26,10 @@ app.use("/api/equipment", equipmentRoutes);
 app.use("/api/allocations", allocationRoutes);
 app.use("/api/tournaments", tournamentRoutes);
 app.use("/api/registrations", registrationRoutes);
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/payments", paymentRoutes);
 app.use("/api/chats", chatRoutes);
+app.use("/api", matchDrawRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const server = http.createServer(app);
 
