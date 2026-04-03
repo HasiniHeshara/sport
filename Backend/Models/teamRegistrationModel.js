@@ -69,6 +69,28 @@ const teamRegistrationSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    editCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    editDeadline: {
+      type: Date,
+      default: null,
+    },
+    deleteDeadline: {
+      type: Date,
+      default: null,
+    },
+    pendingAction: {
+      type: String,
+      enum: ["None", "EditMembers", "DeleteTeam"],
+      default: "None",
+    },
+    pendingMembers: {
+      type: [teamMemberSchema],
+      default: [],
+    },
   },
   { timestamps: true }
 );

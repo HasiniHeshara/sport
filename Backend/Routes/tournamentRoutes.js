@@ -10,10 +10,13 @@ const {
   deleteTournament,
   getPublishedTournaments,
   getMyTournaments,
-  registerTeam,
-  getMyTeamRegistration,
   getTournamentRegistrations,
 } = require("../Controllers/tournamentController");
+
+const {
+  registerTeam,
+  getMyTeamRegistration,
+} = require("../Controllers/participantController");
 
 const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 

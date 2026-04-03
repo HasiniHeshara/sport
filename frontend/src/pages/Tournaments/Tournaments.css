@@ -275,3 +275,23 @@
 .sp-dateInput::-webkit-clear-button{
   display: none;
 }
+
+/* Team members display */
+.team-members-display {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.member-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 8px;
+  padding: 10px 12px;
+  border-left: 3px solid #ff6a00;
+}
+
+.member-card b {
+  color: #e5e7eb;
+  font-size: 13px;
+}

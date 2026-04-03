@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "../Tournaments/Tournaments.css";
+import "./ParticipantDashboard.css";
 import logoImg from "../../assets/logo.jpg";
 
 const formatDate = (v) => String(v || "").slice(0, 10);
@@ -14,6 +15,11 @@ export default function ParticipantDashboard() {
   const [notifications, setNotifications] = useState([]);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [editingRegistration, setEditingRegistration] = useState(null);
+  const [editForm, setEditForm] = useState({ members: [] });
+  const [deleteConfirmation, setDeleteConfirmation] = useState(null);
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
   const user = useMemo(() => {
     try {
@@ -51,6 +57,33 @@ export default function ParticipantDashboard() {
       ...getStoredNotifications(),
     ].slice(0, 20);
     saveNotifications(next);
+  };
+
+  const pushOrganizerNotification = (registration, text) => {
+    const organizerId =
+      registration?.tournamentId?.organizerId?._id ||
+      registration?.tournamentId?.organizerId ||
+      "organizer";
+
+    const key = `sportix_organizer_notifications_${organizerId}`;
+
+    try {
+      const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+      const existing = Array.isArray(parsed) ? parsed : [];
+      const next = [
+        {
+          id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
+          text,
+          createdAt: new Date().toISOString(),
+          tournamentId: registration?.tournamentId?._id || "",
+        },
+        ...existing,
+      ].slice(0, 20);
+
+      localStorage.setItem(key, JSON.stringify(next));
+    } catch {
+      // Ignore notification storage failures to avoid blocking core flow.
+    }
   };
 
   const saveCurrentStatuses = (items) => {
@@ -150,6 +183,92 @@ export default function ParticipantDashboard() {
 
   const clearNotifications = () => {
     saveNotifications([]);
+  };
+
+  const canEditMembers = (reg) => {
+    if (!reg) return false;
+    if (!["Pending", "Approved"].includes(String(reg.status || ""))) return false;
+    const t = reg.tournamentId || {};
+    const editDeadline = reg.editDeadline || t.registrationDeadline;
+    if (new Date() > new Date(editDeadline)) return false;
+    return true;
+  };
+
+  const canDeleteTeam = (reg) => {
+    if (!reg) return false;
+    if (!["Pending", "Approved"].includes(String(reg.status || ""))) return false;
+    const t = reg.tournamentId || {};
+    const deleteDeadline = reg.deleteDeadline || t.registrationDeadline;
+    if (new Date() > new Date(deleteDeadline)) return false;
+    return true;
+  };
+
+  const openEditModal = (reg) => {
+    setEditingRegistration(reg);
+    setEditForm({
+      members: (reg.members || []).map((m) => ({ ...m })),
+    });
+  };
+
+  const closeEditModal = () => {
+    setEditingRegistration(null);
+    setEditForm({ members: [] });
+  };
+
+  const handleEditMemberChange = (index, field, value) => {
+    setEditForm((prev) => {
+      const members = [...prev.members];
+      members[index] = { ...members[index], [field]: value };
+      return { ...prev, members };
+    });
+  };
+
+  const submitMembersEdit = async () => {
+    if (!editingRegistration) return;
+    setEditSubmitting(true);
+    try {
+      await api.put(`/api/registrations/${editingRegistration._id}/edit-members`, {
+        members: editForm.members,
+      });
+      pushNotification(
+        `Team members updated for ${editingRegistration.tournamentId?.title || "tournament"}.`
+      );
+      pushOrganizerNotification(
+        editingRegistration,
+        `Team members were updated by the leader for ${editingRegistration.tournamentId?.title || "tournament"}.`
+      );
+      closeEditModal();
+      await load();
+    } catch (err) {
+      alert(
+        err.response?.data?.message || "Failed to submit member edits"
+      );
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
+  const submitDeleteTeam = async () => {
+    if (!deleteConfirmation) return;
+    setDeleteSubmitting(true);
+    try {
+      await api.delete(`/api/registrations/${deleteConfirmation._id}`);
+      pushNotification(
+        `Team deleted for ${deleteConfirmation.tournamentId?.title || "tournament"}.`
+      );
+      pushOrganizerNotification(
+        deleteConfirmation,
+        `A team was deleted by the leader for ${deleteConfirmation.tournamentId?.title || "tournament"}.`
+      );
+      setDeleteConfirmation(null);
+      await load();
+    } catch (err) {
+      alert(
+        err.response?.data?.message || "Failed to delete team"
+      );
+    } finally {
+      setDeleteSubmitting(false);
+    }
   };
 
   return (
@@ -354,6 +473,54 @@ export default function ParticipantDashboard() {
                         <b>Reason:</b> {r.rejectionReason}
                       </div>
                     ) : null}
+                    {r.members && r.members.length > 0 ? (
+                      <div className="team-members-approved">
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                          <b style={{ color: "#e5e7eb", display: "block", marginTop: "10px" }}>
+                            Team Members ({r.members.length}):
+                          </b>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            {canEditMembers(r) && (
+                              <button
+                                type="button"
+                                className="sp-btn"
+                                style={{ padding: "6px 10px", fontSize: "12px" }}
+                                onClick={() => openEditModal(r)}
+                              >
+                                Edit Members
+                              </button>
+                            )}
+                            {canDeleteTeam(r) && (
+                              <button
+                                type="button"
+                                className="sp-btnDanger"
+                                style={{ padding: "6px 10px", fontSize: "12px" }}
+                                onClick={() => setDeleteConfirmation(r)}
+                              >
+                                Delete Team
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <div className="team-members-list">
+                          {r.members.map((member, idx) => (
+                            <div key={idx} className="team-member-item">
+                              <div>
+                                <b>{idx + 1}. {member.name}</b>
+                              </div>
+                              <div style={{ fontSize: "12px", color: "#cbd5e1", marginTop: "2px" }}>
+                                IT #: {member.itNumber}
+                              </div>
+                              {member.contactNumber && (
+                                <div style={{ fontSize: "12px", color: "#cbd5e1", marginTop: "2px" }}>
+                                  Ph: {member.contactNumber}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className="sp-actions">
@@ -382,6 +549,116 @@ export default function ParticipantDashboard() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Edit Members Modal */}
+        {editingRegistration && (
+          <div className="modal-overlay" onClick={closeEditModal}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3 className="sp-cardTitle" style={{ margin: 0 }}>
+                  Edit Team Members
+                </h3>
+                <button
+                  type="button"
+                  className="sp-btnOutline"
+                  style={{ padding: "6px 10px", fontSize: "12px" }}
+                  onClick={closeEditModal}
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="modal-body">
+                <p style={{ fontSize: "12px", color: "#cbd5e1", margin: "0 0 12px" }}>
+                  <b style={{ color: "#e5e7eb" }}>Note:</b> You can edit members before the event deadline.
+                </p>
+
+                {editForm.members.map((member, idx) => (
+                  <div key={idx} className="sp-formGrid" style={{ marginTop: idx === 0 ? 0 : 12 }}>
+                    <div>
+                      <label className="sp-label" style={{ fontSize: "12px" }}>Name</label>
+                      <input
+                        className="sp-input"
+                        value={member.name}
+                        onChange={(e) => handleEditMemberChange(idx, "name", e.target.value)}
+                        style={{ fontSize: "13px" }}
+                      />
+                    </div>
+                    <div>
+                      <label className="sp-label" style={{ fontSize: "12px" }}>IT Number</label>
+                      <input
+                        className="sp-input"
+                        value={member.itNumber}
+                        onChange={(e) => handleEditMemberChange(idx, "itNumber", e.target.value)}
+                        style={{ fontSize: "13px" }}
+                      />
+                    </div>
+                    <div>
+                      <label className="sp-label" style={{ fontSize: "12px" }}>Contact Number</label>
+                      <input
+                        className="sp-input"
+                        value={member.contactNumber || ""}
+                        onChange={(e) => handleEditMemberChange(idx, "contactNumber", e.target.value)}
+                        style={{ fontSize: "13px" }}
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                <div className="sp-formActions">
+                  <button
+                    type="button"
+                    className="sp-btn"
+                    onClick={submitMembersEdit}
+                    disabled={editSubmitting}
+                  >
+                    {editSubmitting ? "Submitting..." : "Submit Changes"}
+                  </button>
+                  <button
+                    type="button"
+                    className="sp-btnOutline"
+                    onClick={closeEditModal}
+                    disabled={editSubmitting}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Dialog */}
+        {deleteConfirmation && (
+          <div className="modal-overlay" onClick={() => setDeleteConfirmation(null)}>
+            <div className="confirmation-dialog" onClick={(e) => e.stopPropagation()}>
+              <h3 style={{ margin: "0 0 12px", color: "#e5e7eb", fontSize: "16px" }}>
+                Are you want to delete team?
+              </h3>
+              <p style={{ margin: "0 0 12px", color: "#cbd5e1", fontSize: "13px" }}>
+                Your payment will not be refunded.
+              </p>
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  className="sp-btnOutline"
+                  onClick={() => setDeleteConfirmation(null)}
+                  disabled={deleteSubmitting}
+                >
+                  Stay
+                </button>
+                <button
+                  type="button"
+                  className="sp-btnDanger"
+                  onClick={submitDeleteTeam}
+                  disabled={deleteSubmitting}
+                >
+                  {deleteSubmitting ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

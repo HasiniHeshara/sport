@@ -6,6 +6,8 @@ import "./Tournaments.css";
 const emptyMember = { name: "", itNumber: "", contactNumber: "" };
 const formatDate = (v) => String(v || "").slice(0, 10);
 const tournamentResName = (t) => t?.title || "selected tournament";
+const isTenDigitNumber = (v = "") => /^\d{10}$/.test(String(v).trim());
+const toTenDigits = (v = "") => String(v).replace(/\D/g, "").slice(0, 10);
 
 const addParticipantNotification = (user, text) => {
   const userId = user?.id || user?._id || "guest";
@@ -167,6 +169,9 @@ export default function TournamentDetails() {
     if (!form.contactNumber.trim()) {
       return "Contact number is required";
     }
+    if (!isTenDigitNumber(form.contactNumber)) {
+      return "Leader contact number must be exactly 10 digits";
+    }
 
     const validMembers = form.members.filter(
       (m) => m.name.trim() && m.itNumber.trim()
@@ -180,6 +185,13 @@ export default function TournamentDetails() {
     );
     if (itSet.size !== validMembers.length) {
       return "Duplicate member IT numbers are not allowed";
+    }
+
+    const invalidMemberContact = (form.members || []).find(
+      (m) => m.contactNumber && !isTenDigitNumber(m.contactNumber)
+    );
+    if (invalidMemberContact) {
+      return "Each member contact number must be exactly 10 digits";
     }
 
     return null;
@@ -316,6 +328,45 @@ export default function TournamentDetails() {
                 <div><b>Rejection Reason:</b> {registration.rejectionReason}</div>
               ) : null}
             </div>
+
+            {registration.status === "Approved" && (
+              <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid rgba(148, 163, 184, 0.15)" }}>
+                <h4 className="sp-cardTitle" style={{ fontSize: 16, marginBottom: 10 }}>
+                  Approved Team Details
+                </h4>
+
+                <div className="sp-meta">
+                  <div><b>Team Name:</b> {registration.teamName}</div>
+                  <div><b>Leader Contact:</b> {registration.contactNumber}</div>
+                  <div><b>Approved Date:</b> {formatDate(registration.updatedAt || registration.createdAt)}</div>
+                </div>
+
+                {registration.members && registration.members.length > 0 && (
+                  <div style={{ marginTop: 12 }}>
+                    <b style={{ display: "block", marginBottom: 8, color: "#e5e7eb" }}>
+                      Team Members ({registration.members.length}):
+                    </b>
+                    <div className="team-members-display">
+                      {registration.members.map((member, idx) => (
+                        <div key={idx} className="member-card">
+                          <div>
+                            <b>{idx + 1}. {member.name}</b>
+                          </div>
+                          <div style={{ fontSize: "12px", color: "#cbd5e1", marginTop: "4px" }}>
+                            IT Number: {member.itNumber}
+                          </div>
+                          {member.contactNumber && (
+                            <div style={{ fontSize: "12px", color: "#cbd5e1", marginTop: "2px" }}>
+                              Contact: {member.contactNumber}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -345,11 +396,16 @@ export default function TournamentDetails() {
                   <label className="sp-label">Leader Contact Number</label>
                   <input
                     className="sp-input"
+                    type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]{10}"
+                    maxLength={10}
+                    title="Enter a 10-digit contact number"
                     value={form.contactNumber}
                     onChange={(e) =>
                       setForm((prev) => ({
                         ...prev,
-                        contactNumber: e.target.value,
+                        contactNumber: toTenDigits(e.target.value),
                       }))
                     }
                     required
@@ -390,9 +446,14 @@ export default function TournamentDetails() {
                       <label className="sp-label">Contact Number</label>
                       <input
                         className="sp-input"
+                        type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]{10}"
+                        maxLength={10}
+                        title="Enter a 10-digit contact number"
                         value={m.contactNumber}
                         onChange={(e) =>
-                          setMember(index, "contactNumber", e.target.value)
+                          setMember(index, "contactNumber", toTenDigits(e.target.value))
                         }
                       />
                     </div>
