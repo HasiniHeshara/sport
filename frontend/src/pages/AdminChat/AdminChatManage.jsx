@@ -54,11 +54,14 @@ export default function AdminChatManage() {
 
   const loadMessages = async (chatId) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/chats/admin/${chatId}/messages`, {
-        headers: {
-          "x-admin-key": ADMIN_KEY,
-        },
-      });
+      const res = await axios.get(
+        `http://localhost:5000/api/chats/admin/${chatId}/messages`,
+        {
+          headers: {
+            "x-admin-key": ADMIN_KEY,
+          },
+        }
+      );
       setMessages(res.data);
     } catch (error) {
       setMsg("Failed to load messages");
@@ -94,10 +97,18 @@ export default function AdminChatManage() {
         {chats.map((chat) => (
           <div
             key={chat._id}
-            className={`chat-user ${selectedChat?._id === chat._id ? "active-chat" : ""}`}
+            className={`chat-user ${
+              selectedChat?._id === chat._id ? "active-chat" : ""
+            }`}
             onClick={() => setSelectedChat(chat)}
           >
-            <strong>{chat.userId?.name}</strong>
+            <div className="chat-user-top">
+              <strong>{chat.userId?.name}</strong>
+              {chat.unreadCount > 0 && (
+                <span className="unread-badge">{chat.unreadCount}</span>
+              )}
+            </div>
+
             <p>{chat.userId?.email}</p>
             <small>{chat.lastMessage}</small>
           </div>
@@ -118,7 +129,9 @@ export default function AdminChatManage() {
               {messages.map((m) => (
                 <div
                   key={m._id}
-                  className={`message ${m.senderType === "admin" ? "my-message" : "user-message"}`}
+                  className={`message ${
+                    m.senderType === "admin" ? "my-message" : "user-message"
+                  }`}
                 >
                   <div className="message-name">{m.senderName}</div>
                   <div>{m.text}</div>

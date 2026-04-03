@@ -30,6 +30,11 @@ const getMyMessages = async (req, res) => {
       return res.json([]);
     }
 
+    await Message.updateMany(
+      { chatId: chat._id, senderType: "admin", isRead: false },
+      { $set: { isRead: true } }
+    );
+
     const messages = await Message.find({ chatId: chat._id }).sort({ createdAt: 1 });
     res.json(messages);
   } catch (error) {
@@ -87,7 +92,22 @@ const getAllChatsForAdmin = async (req, res) => {
       .populate("userId", "name email itNumber role")
       .sort({ lastMessageAt: -1 });
 
-    res.json(chats);
+    const chatsWithUnread = await Promise.all(
+      chats.map(async (chat) => {
+        const unreadCount = await Message.countDocuments({
+          chatId: chat._id,
+          senderType: "user",
+          isRead: false,
+        });
+
+        return {
+          ...chat.toObject(),
+          unreadCount,
+        };
+      })
+    );
+
+    res.json(chatsWithUnread);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -99,8 +119,34 @@ const getChatMessagesForAdmin = async (req, res) => {
   try {
     const { chatId } = req.params;
 
+    await Message.updateMany(
+      { chatId, senderType: "user", isRead: false },
+      { $set: { isRead: true } }
+    );
+
     const messages = await Message.find({ chatId }).sort({ createdAt: 1 });
     res.json(messages);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const getMyUnreadAdminCount = async (req, res) => {
+  try {
+    const chat = await Chat.findOne({ userId: req.user.userId });
+
+    if (!chat) {
+      return res.json({ unreadCount: 0 });
+    }
+
+    const unreadCount = await Message.countDocuments({
+      chatId: chat._id,
+      senderType: "admin",
+      isRead: false,
+    });
+
+    res.json({ unreadCount });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -151,4 +197,5 @@ module.exports = {
   getAllChatsForAdmin,
   getChatMessagesForAdmin,
   sendAdminMessage,
+  getMyUnreadAdminCount,
 };
