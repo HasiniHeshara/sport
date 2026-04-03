@@ -33,6 +33,11 @@ const AdminDashboard = () => {
           <p> Verify payment receipts</p>
         </div>
 
+         <div className="admin-card" onClick={() => navigate("/admin-chats")}>
+          <h3>Manage User chats</h3>
+          <p> chat with users</p>
+        </div>
+
         
       </div>
     </div>
