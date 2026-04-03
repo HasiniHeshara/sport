@@ -45,6 +45,13 @@
   border-color: rgba(239, 68, 68, 0.35);
   color: #fecaca;
 }
+.field-error {
+  display: block;
+  margin-top: 6px;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 500;
+}
 
 .register-form {
   margin-top: 16px;

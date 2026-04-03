@@ -377,7 +377,7 @@ export default function ParticipantDashboard() {
                             alert("Tournament ID not found");
                             return;
                           }
-                          navigate(`/participant/tournament-chat/${t._id}`);
+                          navigate(`/tournament-chat/${t._id}`);
                         }}
                       >
                         Chat with organizer
