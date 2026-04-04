@@ -416,7 +416,7 @@ export default function OrganizerTournamentDashboard() {
           )}
         </div>
 
-        <div className="org-sectionTop org-sectionSpacing">
+        <div className="org-sectionCardd">
           <div>
             <h2>My Tournaments</h2>
             <p>View and manage all tournaments you created.</p>
@@ -674,6 +674,16 @@ export default function OrganizerTournamentDashboard() {
                 >
                   Team Registrations
                 </Link>
+
+                <button
+                  type="button"
+                  className="org-linkBtn org-btnEquipment"
+                  onClick={() =>
+                    navigate(`/organizer/tournaments/${selectedTournament._id}/book-equipment`)
+                  }
+                >
+                  Book Equipment
+                </button>
               </div>
             </div>
 
