@@ -6,6 +6,7 @@ import Login from "./pages/Login/Login";
 
 import AdminLogin from "./pages/AdminLogin/AdminLogin";
 import AdminUsers from "./pages/AdminUser/AdminUser";
+import AdminFeedback from "./pages/AdminFeedback/AdminFeedback";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import EquipmentAllocationManagement from "./pages/Equipment/EquipmentAllocationManagement";
 
@@ -64,6 +65,7 @@ export default function App() {
 
         <Route path="/adminlogin" element={<AdminLogin />} />
         <Route path="/adminusers" element={<AdminUsers />} />
+        <Route path="/feedback" element={<AdminFeedback />} />
         <Route path="/admindashboard" element={<AdminDashboard />} />
         <Route path="/paymentDetails" element={<PaymentDetails />} />
         <Route path="/equipment-management" element={<EquipmentAllocationManagement />} />
