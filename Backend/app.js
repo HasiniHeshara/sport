@@ -17,6 +17,7 @@ const notificationRoutes = require("./Routes/notificationRoutes");
 const chatRoutes = require("./Routes/chatRoutes");
 const matchDrawRoutes = require("./Routes/matchDrawRoutes");
 const tournamentChatRoutes = require("./Routes/tournamentChatRoutes");
+const feedbackRoutes = require("./Routes/feedbackRoutes");
 
 connectDB();
 
@@ -38,6 +39,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api", matchDrawRoutes);
 app.use("/api/tournament-chats",tournamentChatRoutes);
+app.use("/api/feedback", feedbackRoutes);
 
 const server = http.createServer(app);
 

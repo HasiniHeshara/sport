@@ -1,20 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./FeedbackForm.css";
 
 export default function FeedbackForm() {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user") || "null");
 
   const [form, setForm] = useState({
-    tournamentName: "",
     rating: "",
-    category: "Tournament",
-    feedback: "",
+    subject: "",
+    message: "",
   });
 
-  const [msg, setMsg] = useState("");
+  const [msg, setMsg] = useState({ type: "", text: "" });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!token || !user) {
+      alert("Please login first to provide feedback.");
+      navigate("/login");
+    }
+  }, [token, user, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,29 +32,31 @@ export default function FeedbackForm() {
     }));
   };
 
+  const validate = () => {
+    if (!form.rating) return "Rating is required";
+    if (!form.subject.trim()) return "Subject is required";
+    if (!form.message.trim()) return "Message is required";
+    if (form.subject.trim().length < 3) return "Subject must be at least 3 characters";
+    if (form.message.trim().length < 10) return "Message must be at least 10 characters";
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMsg("");
+    setMsg({ type: "", text: "" });
 
-    if (!form.tournamentName || !form.rating || !form.feedback) {
-      setMsg("Please fill all required fields");
+    const error = validate();
+    if (error) {
+      setMsg({ type: "error", text: error });
       return;
     }
 
     try {
       setLoading(true);
 
-      await axios.post(
+      const res = await axios.post(
         "http://localhost:5000/api/feedback",
-        {
-          userId: user?.id || user?._id,
-          userName: user?.name,
-          role: user?.role,
-          tournamentName: form.tournamentName,
-          rating: form.rating,
-          category: form.category,
-          feedback: form.feedback,
-        },
+        form,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -54,16 +64,21 @@ export default function FeedbackForm() {
         }
       );
 
-      setMsg("Feedback submitted successfully");
+      setMsg({
+        type: "success",
+        text: res.data?.message || "Feedback submitted successfully",
+      });
 
       setForm({
-        tournamentName: "",
         rating: "",
-        category: "Tournament",
-        feedback: "",
+        subject: "",
+        message: "",
       });
     } catch (error) {
-      setMsg(error.response?.data?.message || "Failed to submit feedback");
+      setMsg({
+        type: "error",
+        text: error.response?.data?.message || "Failed to submit feedback",
+      });
     } finally {
       setLoading(false);
     }
@@ -72,63 +87,47 @@ export default function FeedbackForm() {
   return (
     <div className="feedback-page">
       <div className="feedback-card">
-        <h2>Submit Feedback</h2>
-        <p>Share your thoughts about tournaments and the platform</p>
+        <h2>Share Your Feedback</h2>
+        <p>Help us improve Sportix with your suggestions and experience.</p>
 
-        {msg && <div className="feedback-msg">{msg}</div>}
+        {msg.text && (
+          <div className={`feedback-alert ${msg.type}`}>
+            {msg.text}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="feedback-form">
           <div className="field">
-            <label>Tournament Name</label>
-            <input
-              type="text"
-              name="tournamentName"
-              value={form.tournamentName}
-              onChange={handleChange}
-              placeholder="Enter tournament name"
-            />
-          </div>
-
-          <div className="feedback-grid">
-            <div className="field">
-              <label>Category</label>
-              <select
-                name="category"
-                value={form.category}
-                onChange={handleChange}
-              >
-                <option value="Tournament">Tournament</option>
-                <option value="Organizer">Organizer</option>
-                <option value="Venue">Venue</option>
-                <option value="System">System</option>
-              </select>
-            </div>
-
-            <div className="field">
-              <label>Rating</label>
-              <select
-                name="rating"
-                value={form.rating}
-                onChange={handleChange}
-              >
-                <option value="">Select Rating</option>
-                <option value="1">1 - Poor</option>
-                <option value="2">2 - Fair</option>
-                <option value="3">3 - Good</option>
-                <option value="4">4 - Very Good</option>
-                <option value="5">5 - Excellent</option>
-              </select>
-            </div>
+            <label>Rating</label>
+            <select name="rating" value={form.rating} onChange={handleChange}>
+              <option value="">Select rating</option>
+              <option value="5">5 - Excellent</option>
+              <option value="4">4 - Good</option>
+              <option value="3">3 - Average</option>
+              <option value="2">2 - Poor</option>
+              <option value="1">1 - Very Poor</option>
+            </select>
           </div>
 
           <div className="field">
-            <label>Feedback</label>
-            <textarea
-              name="feedback"
-              value={form.feedback}
+            <label>Subject</label>
+            <input
+              type="text"
+              name="subject"
+              value={form.subject}
               onChange={handleChange}
-              rows="5"
+              placeholder="Enter feedback subject"
+            />
+          </div>
+
+          <div className="field">
+            <label>Message</label>
+            <textarea
+              name="message"
+              value={form.message}
+              onChange={handleChange}
               placeholder="Write your feedback here..."
+              rows="6"
             />
           </div>
 
