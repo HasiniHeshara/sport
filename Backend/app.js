@@ -16,6 +16,7 @@ const paymentRoutes = require("./Routes/paymentRoutes");
 const notificationRoutes = require("./Routes/notificationRoutes");
 const chatRoutes = require("./Routes/chatRoutes");
 const matchDrawRoutes = require("./Routes/matchDrawRoutes");
+const tournamentChatRoutes = require("./Routes/tournamentChatRoutes");
 
 connectDB();
 
@@ -36,6 +37,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api", matchDrawRoutes);
+app.use("/api/tournament-chats",tournamentChatRoutes);
 
 const server = http.createServer(app);
 
@@ -52,6 +54,10 @@ io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
   socket.on("join_chat", (chatId) => {
+    socket.join(chatId);
+  });
+
+  socket.on("join_tournament_chat", (chatId) => {
     socket.join(chatId);
   });
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import "./Login.css";
@@ -13,6 +13,21 @@ export default function Login() {
   });
 
   const [msg, setMsg] = useState({ type: "", text: "" });
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+
+    if (token && user) {
+      if (user.role === "organizer") {
+        navigate("/organizer-dashboard");
+      } else if (user.role === "participant") {
+        navigate("/participant-dashboard");
+      } else if (user.role === "admin") {
+        navigate("/admindashboard");
+      }
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,20 +54,43 @@ export default function Login() {
     try {
       setLoading(true);
 
+      // hardcoded admin login
+      const adminEmail = "admin@sportix.com";
+      const adminPassword = "admin123";
+
+      if (form.email === adminEmail && form.password === adminPassword) {
+        localStorage.setItem("token", "admin-demo-token");
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            id: "admin001",
+            name: "Admin",
+            email: adminEmail,
+            role: "admin",
+          })
+        );
+
+        setMsg({ type: "success", text: "Admin login successful!" });
+
+        setTimeout(() => {
+          navigate("/admindashboard");
+        }, 800);
+
+        return;
+      }
+
+      // normal user login
       const res = await axios.post("http://localhost:5000/api/users/login", form);
 
       const { token, user, message } = res.data;
 
-      localStorage.removeItem("admin");
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
       setMsg({ type: "success", text: message || "Login successful!" });
 
       setTimeout(() => {
-        if (user.role === "admin") {
-          navigate("/admindashboard");
-        } else if (user.role === "organizer") {
+        if (user.role === "organizer") {
           navigate("/organizer-dashboard");
         } else if (user.role === "participant") {
           navigate("/participant-dashboard");
@@ -86,26 +124,30 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="login-form" autoComplete="on">
           <div className="field">
             <label>Email</label>
             <input
+              id="email"
               name="email"
               type="email"
               value={form.email}
               onChange={handleChange}
               placeholder="example@gmail.com"
+              autoComplete="email"
             />
           </div>
 
           <div className="field">
             <label>Password</label>
             <input
+              id="password"
               name="password"
               type="password"
               value={form.password}
               onChange={handleChange}
               placeholder="Enter your password"
+              autoComplete="current-password"
             />
           </div>
 

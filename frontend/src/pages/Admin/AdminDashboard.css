@@ -42,3 +42,25 @@
   color: #050505;
   font-size: 17px;
 }
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.admin-logout-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 12px;
+  background: #ef4444;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-logout-btn:hover {
+  opacity: 0.9;
+}

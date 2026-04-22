@@ -9,14 +9,12 @@ import AdminUsers from "./pages/AdminUser/AdminUser";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import EquipmentAllocationManagement from "./pages/Equipment/EquipmentAllocationManagement";
 
-// Organizer pages
 import OrganizerTournamentDashboard from "./pages/Organizer/OrganizerTournamentDashboard";
 import CreateTournament from "./pages/Organizer/CreateTournament";
 import EditTournament from "./pages/Organizer/EditTournament";
 import OrganizerTournamentRegistrations from "./pages/Organizer/OrganizerTournamentRegistrations";
 import BookEquipment from "./pages/Organizer/BookEquipment";
 
-// Public pages
 import Tournaments from "./pages/Tournaments/Tournaments";
 import TournamentDetails from "./pages/Tournaments/TournamentDetails";
 import ParticipantDashboard from "./pages/Participant/ParticipantDashboard";
@@ -27,6 +25,8 @@ import Profile from "./pages/Profile/Profile";
 
 import UserChat from "./pages/UserChat/UserChat";
 import AdminChatManage from "./pages/AdminChat/AdminChatManage";
+import ParticipantOrganizerChat from "./pages/ParticipantChat/ParticipantOrganizerChat";
+import OrganizerParticipantChats from "./pages/OrganizerChat/OrganizerParticipantChat";
 
 function Placeholder({ title }) {
   return (
@@ -71,6 +71,16 @@ export default function App() {
         <Route path="/feedbackform" element={<Feedback />} />
         <Route path="/chat" element={<UserChat />} />
         <Route path="/admin-chats" element={<AdminChatManage />} />
+
+        <Route
+          path="/tournament-chat/:tournamentId"
+          element={<ParticipantOrganizerChat />}
+        />
+
+        <Route
+          path="/participant-chats"
+          element={<OrganizerParticipantChats />}
+        />
       </Routes>
     </BrowserRouter>
   );
