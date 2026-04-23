@@ -38,25 +38,32 @@ export default function PaymentDetails() {
     loadPayments();
   }, []);
 
-  const updateStatus = async (paymentId, newStatus) => {
+  const verifyPayment = async (paymentId) => {
     try {
-      const endpoint =
-        newStatus === "Verified"
-          ? `/api/payments/${paymentId}/verify`
-          : `/api/payments/${paymentId}/reject`;
-
-      await api.patch(endpoint, {
-        adminRemark:
-          newStatus === "Rejected"
-            ? "Please upload a valid payment slip again."
-            : "",
+      await api.patch(`/api/payments/${paymentId}/verify`, {
+        adminRemark: "Payment verified successfully.",
       });
-
       loadPayments();
     } catch (error) {
-      alert(
-        error.response?.data?.message || "Failed to update payment status"
-      );
+      alert(error.response?.data?.message || "Failed to verify payment");
+    }
+  };
+
+  const rejectPayment = async (paymentId) => {
+    const reason = window.prompt(
+      "Enter rejection reason:",
+      "Blurred receipt"
+    );
+
+    if (reason === null) return;
+
+    try {
+      await api.patch(`/api/payments/${paymentId}/reject`, {
+        adminRemark: reason.trim() || "Please upload a valid payment slip again.",
+      });
+      loadPayments();
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to reject payment");
     }
   };
 
@@ -132,6 +139,7 @@ export default function PaymentDetails() {
                 <th>Method</th>
                 <th>Slip</th>
                 <th>Status</th>
+                <th>Remark</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -139,7 +147,7 @@ export default function PaymentDetails() {
             <tbody>
               {payments.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="payment-empty-cell">
+                  <td colSpan="10" className="payment-empty-cell">
                     No payment records yet.
                   </td>
                 </tr>
@@ -160,6 +168,7 @@ export default function PaymentDetails() {
                         {payment.status}
                       </span>
                     </td>
+                    <td>{payment.adminRemark || "-"}</td>
                     <td>
                       <div className="payment-admin-actions">
                         <button
@@ -173,7 +182,7 @@ export default function PaymentDetails() {
                         <button
                           type="button"
                           className="verify-btn"
-                          onClick={() => updateStatus(payment._id, "Verified")}
+                          onClick={() => verifyPayment(payment._id)}
                         >
                           Verify
                         </button>
@@ -181,7 +190,7 @@ export default function PaymentDetails() {
                         <button
                           type="button"
                           className="reject-btn"
-                          onClick={() => updateStatus(payment._id, "Rejected")}
+                          onClick={() => rejectPayment(payment._id)}
                         >
                           Reject
                         </button>

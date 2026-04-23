@@ -174,3 +174,33 @@ small.field-error {
   font-weight: 700 !important;
   line-height: 1.4;
 }
+
+.field-hint,
+small.field-hint {
+  display: block;
+  margin-top: 8px;
+  color: #a8d8ff !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  line-height: 1.4;
+}
+
+.field-error,
+small.field-error {
+  display: block;
+  margin-top: 8px;
+  color: #91ccff !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 1.4;
+}
+
+.current-slip-box {
+  margin-top: 16px;
+  margin-bottom: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: #e5e7eb;
+  padding: 12px 14px;
+  border-radius: 12px;
+}

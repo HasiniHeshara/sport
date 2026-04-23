@@ -177,7 +177,8 @@ const verifyPayment = async (req, res) => {
     }
 
     payment.status = "Verified";
-    payment.adminRemark = req.body.adminRemark || "";
+    payment.adminRemark =
+      req.body.adminRemark || "Payment verified successfully.";
     payment.verifiedBy = req.user.userId;
     payment.verifiedAt = new Date();
 
@@ -196,6 +197,16 @@ const verifyPayment = async (req, res) => {
         relatedTournamentId: payment.tournamentId,
       });
     }
+
+    await Notification.create({
+      recipientId: payment.participantId,
+      recipientRole: "participant",
+      title: "Payment Verified",
+      message: `Your payment for tournament "${payment.tournamentTitle}" has been verified by admin.`,
+      type: "payment",
+      relatedPaymentId: payment._id,
+      relatedTournamentId: payment.tournamentId,
+    });
 
     res.json({
       message: "Payment verified successfully",
@@ -237,6 +248,16 @@ const rejectPayment = async (req, res) => {
         relatedTournamentId: payment.tournamentId,
       });
     }
+
+    await Notification.create({
+      recipientId: payment.participantId,
+      recipientRole: "participant",
+      title: "Payment Rejected",
+      message: `Your payment for tournament "${payment.tournamentTitle}" was rejected. Reason: ${payment.adminRemark}`,
+      type: "payment",
+      relatedPaymentId: payment._id,
+      relatedTournamentId: payment.tournamentId,
+    });
 
     res.json({
       message: "Payment rejected successfully",

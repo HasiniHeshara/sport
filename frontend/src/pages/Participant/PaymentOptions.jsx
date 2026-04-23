@@ -6,19 +6,25 @@ import "./PaymentOptions.css";
 export default function PaymentOptions() {
   const navigate = useNavigate();
   const location = useLocation();
-  const paymentData = useMemo(() => location.state || {}, [location.state]);
 
-  const [method, setMethod] = useState("slip");
+  const initialPaymentData = useMemo(() => location.state || {}, [location.state]);
+  const [paymentData, setPaymentData] = useState(initialPaymentData);
+
   const [slipFile, setSlipFile] = useState(null);
   const [successMsg, setSuccessMsg] = useState("");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
+  const isVerified = paymentData.paymentStatus === "Verified";
+  const isRejected = paymentData.paymentStatus === "Rejected";
+  const isPending = paymentData.paymentStatus === "Pending";
+  const hasExistingSlip = !!paymentData.slipOriginalName;
+
   const validateSlipForm = () => {
     const newErrors = {};
 
     if (!slipFile) {
-      newErrors.slipFile = "Please choose a payment slip file.";
+      newErrors.slipFile = "Payment slip is required.";
     } else {
       const allowedTypes = [
         "image/jpeg",
@@ -49,6 +55,7 @@ export default function PaymentOptions() {
 
     try {
       setLoading(true);
+      setSuccessMsg("");
 
       const formData = new FormData();
       formData.append("registrationId", paymentData.registrationId);
@@ -66,6 +73,16 @@ export default function PaymentOptions() {
       });
 
       setSuccessMsg(data.message || "Payment slip uploaded successfully.");
+
+      setPaymentData((prev) => ({
+        ...prev,
+        paymentStatus: data?.payment?.status || "Pending",
+        adminRemark: data?.payment?.adminRemark || "",
+        slipOriginalName: data?.payment?.slipOriginalName || slipFile.name,
+        slipUrl: data?.payment?.slipUrl || "",
+        verifiedAt: data?.payment?.verifiedAt || "",
+      }));
+
       setSlipFile(null);
       setErrors({});
     } catch (error) {
@@ -103,32 +120,24 @@ export default function PaymentOptions() {
             <div><b>Team Name:</b> {paymentData.teamName}</div>
             <div><b>Registration ID:</b> {paymentData.registrationId}</div>
             <div><b>Amount:</b> Rs. {paymentData.amount}</div>
-            <div><b>Status:</b> {paymentData.status}</div>
-            <div><b>Email:</b> {paymentData.participantEmail}</div>
+            <div><b>Payment Status:</b> {paymentData.paymentStatus || "Not Paid"}</div>
+            <div><b>Admin Remark:</b> {paymentData.adminRemark || "-"}</div>
           </div>
         </div>
 
-        <div className="payment-method-grid">
-          <div
-            className={`payment-method-card ${method === "slip" ? "active" : ""}`}
-            onClick={() => setMethod("slip")}
-          >
-            <h3>Upload Payment Slip</h3>
-            <p>Upload a bank receipt or payment slip for admin verification.</p>
+        {isVerified ? (
+          <div className="payment-success-box">
+            This payment has already been verified. You cannot upload another slip for this tournament.
           </div>
-
-          <div
-            className={`payment-method-card ${method === "payhere" ? "active" : ""}`}
-            onClick={() => setMethod("payhere")}
-          >
-            <h3>PayHere</h3>
-            <p>Demo online payment option.</p>
-          </div>
-        </div>
-
-        {method === "slip" && (
+        ) : (
           <div className="payment-form-card">
-            <h3>Upload Payment Slip</h3>
+            <h3>
+              {isRejected
+                ? "Re-upload Payment Slip"
+                : isPending
+                ? "Update Payment Slip"
+                : "Upload Payment Slip"}
+            </h3>
 
             <form onSubmit={handleSubmitSlip}>
               <div className="payment-form-grid">
@@ -136,7 +145,7 @@ export default function PaymentOptions() {
                   <label>Team Name</label>
                   <input type="text" value={paymentData.teamName || ""} readOnly />
                   <small className="field-hint">
-                    This is auto-filled from your approved registration.
+                    Auto-filled from your approved registration.
                   </small>
                 </div>
 
@@ -148,7 +157,7 @@ export default function PaymentOptions() {
                     readOnly
                   />
                   <small className="field-hint">
-                    This is auto-filled from your selected tournament.
+                    Auto-filled from your selected tournament.
                   </small>
                 </div>
 
@@ -159,9 +168,6 @@ export default function PaymentOptions() {
                     value={`Rs. ${paymentData.amount || 0}`}
                     readOnly
                   />
-                  <small className="field-hint">
-                    This is the registration fee to be paid.
-                  </small>
                 </div>
 
                 <div>
@@ -175,7 +181,7 @@ export default function PaymentOptions() {
                     }}
                   />
                   <small className="field-hint">
-                    Upload JPG, PNG, or PDF only. File size must be less than 5MB.
+                    Only JPG, PNG, PDF files are allowed. Max size 5MB.
                   </small>
                   {errors.slipFile && (
                     <small className="field-error">{errors.slipFile}</small>
@@ -183,12 +189,24 @@ export default function PaymentOptions() {
                 </div>
               </div>
 
+              {hasExistingSlip && (
+                <div className="current-slip-box">
+                  <b>Current Uploaded Slip:</b> {paymentData.slipOriginalName}
+                </div>
+              )}
+
               <button
                 type="submit"
                 className="payment-submit-btn"
                 disabled={loading}
               >
-                {loading ? "Submitting..." : "Submit Slip"}
+                {loading
+                  ? "Submitting..."
+                  : isRejected
+                  ? "Re-upload Slip"
+                  : isPending
+                  ? "Replace Slip"
+                  : "Submit Slip"}
               </button>
             </form>
           </div>
