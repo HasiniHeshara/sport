@@ -1,0 +1,58 @@
+.admin-feedback-page {
+  min-height: 100vh;
+  background: #0b1020;
+  color: white;
+  padding: 24px;
+  font-family: Arial, sans-serif;
+}
+
+.admin-feedback-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(56, 189, 248, 0.16);
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.admin-feedback-card h2 {
+  margin: 0 0 8px;
+}
+
+.admin-feedback-card p {
+  margin: 0 0 16px;
+  color: #cbd5e1;
+}
+
+.admin-feedback-msg {
+  margin-bottom: 16px;
+  color: #fecaca;
+}
+
+.feedback-table-wrapper {
+  overflow-x: auto;
+}
+
+.feedback-table-wrapper table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.feedback-table-wrapper th,
+.feedback-table-wrapper td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  text-align: left;
+  vertical-align: top;
+}
+
+.feedback-table-wrapper th {
+  color: #dbeafe;
+}
+
+.delete-feedback-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 10px;
+  background: #ef4444;
+  color: white;
+  cursor: pointer;
+}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FaRobot, FaUserCircle } from "react-icons/fa";
+import axios from "axios";
 import "./Home.css";
 
 import hero1 from "../../assets/hero1.jpg";
@@ -19,6 +20,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentUser, setCurrentUser] = useState(null);
+  const [recentFeedbacks, setRecentFeedbacks] = useState([]);
 
   useEffect(() => {
     const savedUser = JSON.parse(localStorage.getItem("user") || "null");
@@ -28,8 +30,19 @@ export default function Home() {
       setCurrentSlide((prev) => (prev + 1) % heroImages.length);
     }, 4500);
 
+    loadRecentFeedbacks();
+
     return () => clearInterval(interval);
   }, []);
+
+  const loadRecentFeedbacks = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/feedback/recent");
+      setRecentFeedbacks(res.data || []);
+    } catch (error) {
+      console.error("Failed to load recent feedbacks");
+    }
+  };
 
   const handleDashboardOrLogin = () => {
     const token = localStorage.getItem("token");
@@ -207,24 +220,26 @@ export default function Home() {
         </section>
 
         <section className="testimonials-section">
-          <h2>What Users Say</h2>
+          <h2>Recent User Feedback</h2>
 
           <div className="testimonials-container">
-            <div className="testimonial-card">
-              <p>"Creating tournaments is super easy, and registrations are tracked perfectly."</p>
-              <div className="customer-info">
-                <span className="customer-name">- Organizer</span>
-                <span className="customer-role">University Sports Club</span>
+            {recentFeedbacks.length === 0 ? (
+              <div className="testimonial-card">
+                <p>No feedback available yet.</p>
               </div>
-            </div>
-
-            <div className="testimonial-card">
-              <p>"I like the receipt upload payment method because not everyone has PayPal."</p>
-              <div className="customer-info">
-                <span className="customer-name">- Team Captain</span>
-                <span className="customer-role">Participant</span>
-              </div>
-            </div>
+            ) : (
+              recentFeedbacks.map((item) => (
+                <div className="testimonial-card" key={item._id}>
+                  <p>"{item.message}"</p>
+                  <div className="customer-info">
+                    <span className="customer-name">- {item.userName}</span>
+                    <span className="customer-role">
+                      {item.userRole} | {item.rating}/5
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </section>
 
