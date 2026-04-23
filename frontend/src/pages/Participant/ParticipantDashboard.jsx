@@ -30,73 +30,30 @@ export default function ParticipantDashboard() {
     }
   }, []);
 
-  const userId = user?.id || user?._id || "guest";
-  const notificationsKey = `sportix_notifications_${userId}`;
-  const statusKey = `sportix_registration_statuses_${userId}`;
-
-  const getStoredNotifications = () => {
+  const loadNotifications = async () => {
     try {
-      const parsed = JSON.parse(localStorage.getItem(notificationsKey) || "[]");
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
+      const { data } = await api.get("/api/notifications/my");
+      setNotifications(data || []);
+    } catch (error) {
+      console.error("Failed to load participant notifications", error);
+      setNotifications([]);
     }
   };
 
-  const saveNotifications = (items) => {
-    localStorage.setItem(notificationsKey, JSON.stringify(items));
-    setNotifications(items);
-  };
-
-  const pushNotification = (text) => {
-    const next = [
-      {
-        id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
-        text,
-        createdAt: new Date().toISOString(),
-      },
-      ...getStoredNotifications(),
-    ].slice(0, 20);
-    saveNotifications(next);
-  };
-
-  const saveCurrentStatuses = (items) => {
-    const map = {};
-    (items || []).forEach((r) => {
-      if (r?._id) {
-        map[r._id] = String(r.status || "");
-      }
-    });
-    localStorage.setItem(statusKey, JSON.stringify(map));
-  };
-
-  const notifyStatusChanges = (items) => {
-    let previous = {};
+  const clearNotifications = async () => {
     try {
-      previous = JSON.parse(localStorage.getItem(statusKey) || "{}");
-    } catch {
-      previous = {};
+      const unreadNotifications = notifications.filter((item) => !item.isRead);
+
+      await Promise.all(
+        unreadNotifications.map((item) =>
+          api.patch(`/api/notifications/${item._id}/read`)
+        )
+      );
+
+      setNotifications([]);
+    } catch (error) {
+      console.error("Failed to clear participant notifications", error);
     }
-
-    if (!previous || Object.keys(previous).length === 0) {
-      saveCurrentStatuses(items);
-      return;
-    }
-
-    (items || []).forEach((r) => {
-      if (!r?._id) return;
-
-      const prevStatus = previous[r._id];
-      const nextStatus = String(r.status || "");
-      if (prevStatus && prevStatus !== nextStatus) {
-        const tournamentName = r?.tournamentId?.title || "a tournament";
-        pushNotification(
-          `Registration for ${tournamentName} changed: ${prevStatus} -> ${nextStatus}`
-        );
-      }
-    });
-
-    saveCurrentStatuses(items);
   };
 
   const load = async () => {
@@ -122,7 +79,6 @@ export default function ParticipantDashboard() {
 
       setTournaments(nextTournaments);
       setRegistrations(nextRegistrations);
-      notifyStatusChanges(nextRegistrations);
 
       try {
         const pRes = await api.get("/api/payments/my");
@@ -142,8 +98,8 @@ export default function ParticipantDashboard() {
   };
 
   useEffect(() => {
-    setNotifications(getStoredNotifications());
     load();
+    loadNotifications();
   }, []);
 
   const handleEditMembers = (registrationId, tournamentId) => {
@@ -209,11 +165,7 @@ export default function ParticipantDashboard() {
     return deadlinePassed || t.status !== "Published";
   };
 
-  const clearNotifications = () => {
-    saveNotifications([]);
-  };
-
-  const handlePayNow = (tournament, registration) => {
+  const handlePayNow = (tournament, registration, payment) => {
     navigate("/payment-options", {
       state: {
         tournamentId: tournament?._id || registration?.tournamentId?._id || "",
@@ -232,6 +184,8 @@ export default function ParticipantDashboard() {
           registration?.tournamentId?.registrationFee ||
           1500,
         status: registration?.status || "Approved",
+        paymentStatus: payment?.status || "",
+        adminRemark: payment?.adminRemark || "",
       },
     });
   };
@@ -265,7 +219,10 @@ export default function ParticipantDashboard() {
             </p>
           </div>
 
-          <button type="button" className="sp-btnDark" onClick={load}>
+          <button type="button" className="sp-btnDark" onClick={() => {
+            load();
+            loadNotifications();
+          }}>
             {loading ? "Loading..." : "Refresh"}
           </button>
         </div>
@@ -287,8 +244,8 @@ export default function ParticipantDashboard() {
           ) : (
             <div className="sp-meta" style={{ marginTop: 10 }}>
               {notifications.map((n) => (
-                <div key={n.id}>
-                  <b>{formatDate(n.createdAt)}:</b> {n.text}
+                <div key={n._id}>
+                  <b>{formatDate(n.createdAt)}:</b> {n.message}
                 </div>
               ))}
             </div>
@@ -309,6 +266,7 @@ export default function ParticipantDashboard() {
           <div className="sp-grid">
             {tournaments.map((t) => {
               const reg = registrationByTournament.get(String(t._id));
+              const payment = reg ? paymentByRegistration.get(String(reg._id)) : null;
               const closed = isClosed(t);
 
               let actionLabel = "Register Team";
@@ -358,13 +316,13 @@ export default function ParticipantDashboard() {
                       {actionLabel}
                     </button>
 
-                    {reg?.status === "Approved" && (
+                    {reg?.status === "Approved" && payment?.status !== "Verified" && (
                       <button
                         type="button"
                         className="pay-now-btn"
-                        onClick={() => handlePayNow(t, reg)}
+                        onClick={() => handlePayNow(t, reg, payment)}
                       >
-                        Pay Now
+                        {payment?.status === "Rejected" ? "Re-upload Slip" : "Pay Now"}
                       </button>
                     )}
 
@@ -422,15 +380,24 @@ export default function ParticipantDashboard() {
                     <div><b>Team:</b> {r.teamName}</div>
                     <div><b>Sport:</b> {t.sportType || "-"}</div>
                     <div><b>Submitted:</b> {formatDate(r.createdAt)}</div>
+
                     {payment && (
-                      <div>
-                        <b>Payment Status:</b> {payment.status}
-                      </div>
+                      <>
+                        <div><b>Payment Status:</b> {payment.status}</div>
+                        <div><b>Admin Remark:</b> {payment.adminRemark || "-"}</div>
+                        <div>
+                          <b>Updated At:</b>{" "}
+                          {payment.verifiedAt
+                            ? new Date(payment.verifiedAt).toLocaleString()
+                            : "-"}
+                        </div>
+                      </>
                     )}
+
                     {r.rejectionReason ? (
                       <div><b>Reason:</b> {r.rejectionReason}</div>
                     ) : null}
-                    
+
                     {r.status === "Approved" && r.members && r.members.length > 0 && (
                       <div className="team-members-section">
                         <b className="team-members-title">Team Members:</b>
@@ -462,15 +429,16 @@ export default function ParticipantDashboard() {
                         : "View Registration"}
                     </button>
 
-                    {r.status === "Approved" && (
-                      <button
-                        type="button"
-                        className="pay-now-btn"
-                        onClick={() => handlePayNow(t, r)}
-                      >
-                        Pay Now
-                      </button>
-                    )}
+                    {(r.status === "Approved" || payment?.status === "Rejected") &&
+                      payment?.status !== "Verified" && (
+                        <button
+                          type="button"
+                          className="pay-now-btn"
+                          onClick={() => handlePayNow(t, r, payment)}
+                        >
+                          {payment?.status === "Rejected" ? "Re-upload Slip" : "Pay Now"}
+                        </button>
+                      )}
 
                     {r.status === "Approved" && !closed && (
                       <button
