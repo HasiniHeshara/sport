@@ -19,6 +19,9 @@ export default function OrganizerTournamentDashboard() {
   const [matchDraw, setMatchDraw] = useState(null);
   const [drawMsg, setDrawMsg] = useState("");
 
+  const [fixtureForm, setFixtureForm] = useState({});
+  const [resultForm, setResultForm] = useState({});
+
   const [confirmModal, setConfirmModal] = useState({
     open: false,
     title: "",
@@ -141,6 +144,15 @@ export default function OrganizerTournamentDashboard() {
       );
 
       setTournaments(withInsights);
+
+      if (selectedTournament?._id) {
+        const refreshedSelected = withInsights.find(
+          (t) => t._id === selectedTournament._id
+        );
+        if (refreshedSelected) {
+          setSelectedTournament(refreshedSelected);
+        }
+      }
     } catch (err) {
       setMsg(err.response?.data?.message || "Failed to load tournaments");
     } finally {
@@ -160,13 +172,39 @@ export default function OrganizerTournamentDashboard() {
     return () => clearTimeout(timer);
   }, [successMsg]);
 
+  const hydrateMatchForms = (draw) => {
+    const nextFixture = {};
+    const nextResult = {};
+
+    (draw?.matches || []).forEach((match) => {
+      nextFixture[match.matchNumber] = {
+        matchDate: match.matchDate || "",
+        matchTime: match.matchTime || "",
+        venue: match.venue || "",
+        remarks: match.remarks || "",
+      };
+
+      nextResult[match.matchNumber] = {
+        score: match.score || "",
+        winner: match.winner || "",
+        remarks: match.remarks || "",
+      };
+    });
+
+    setFixtureForm(nextFixture);
+    setResultForm(nextResult);
+  };
+
   const loadMatchDraw = async (tournamentId) => {
     try {
       setDrawMsg("");
       const res = await api.get(`/api/tournaments/${tournamentId}/match-draw`);
       setMatchDraw(res.data);
+      hydrateMatchForms(res.data);
     } catch (err) {
       setMatchDraw(null);
+      setFixtureForm({});
+      setResultForm({});
       if (err.response?.status !== 404) {
         setDrawMsg(err.response?.data?.message || "Failed to load match draw");
       }
@@ -181,9 +219,113 @@ export default function OrganizerTournamentDashboard() {
 
       const res = await api.post(`/api/tournaments/${tournamentId}/match-draw`);
       setMatchDraw(res.data.matchDraw);
+      hydrateMatchForms(res.data.matchDraw);
       setSuccessMsg("Match draw generated successfully.");
     } catch (err) {
       setDrawMsg(err.response?.data?.message || "Failed to generate match draw");
+    }
+  };
+
+  const handleFixtureChange = (matchNumber, field, value) => {
+    setFixtureForm((prev) => ({
+      ...prev,
+      [matchNumber]: {
+        ...(prev[matchNumber] || {}),
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleResultChange = (matchNumber, field, value) => {
+    setResultForm((prev) => ({
+      ...prev,
+      [matchNumber]: {
+        ...(prev[matchNumber] || {}),
+        [field]: value,
+      },
+    }));
+  };
+
+  const saveFixture = async (tournamentId, matchNumber) => {
+    try {
+      setDrawMsg("");
+      setSuccessMsg("");
+
+      const payload = fixtureForm[matchNumber] || {};
+
+      const res = await api.patch(
+        `/api/tournaments/${tournamentId}/match-draw/${matchNumber}/fixture`,
+        payload
+      );
+
+      setMatchDraw(res.data.matchDraw);
+      hydrateMatchForms(res.data.matchDraw);
+      setSuccessMsg(`Fixture for match ${matchNumber} updated successfully.`);
+    } catch (err) {
+      setDrawMsg(err.response?.data?.message || "Failed to update fixture");
+    }
+  };
+
+  const saveResult = async (tournamentId, matchNumber) => {
+    try {
+      setDrawMsg("");
+      setSuccessMsg("");
+
+      const payload = resultForm[matchNumber] || {};
+
+      const res = await api.patch(
+        `/api/tournaments/${tournamentId}/match-draw/${matchNumber}/result`,
+        payload
+      );
+
+      setMatchDraw(res.data.matchDraw);
+      hydrateMatchForms(res.data.matchDraw);
+      setSuccessMsg(`Result for match ${matchNumber} updated successfully.`);
+    } catch (err) {
+      setDrawMsg(err.response?.data?.message || "Failed to update result");
+    }
+  };
+
+  const saveChampion = async (tournamentId) => {
+    try {
+      setDrawMsg("");
+      setSuccessMsg("");
+
+      if (!matchDraw?.matches?.length) {
+        setDrawMsg("Create a match draw first.");
+        return;
+      }
+
+      const completedMatches = matchDraw.matches.filter(
+        (match) => match.status === "Completed" && match.winner
+      );
+
+      if (completedMatches.length === 0) {
+        setDrawMsg("Complete at least one match result before saving champion.");
+        return;
+      }
+
+      const finalMatch = completedMatches[completedMatches.length - 1];
+
+      const champion = finalMatch.winner;
+      const runnerUp =
+        champion === finalMatch.teamA ? finalMatch.teamB : finalMatch.teamA;
+
+      const res = await api.patch(
+        `/api/tournaments/${tournamentId}/match-draw/champion`,
+        {
+          champion,
+          runnerUp,
+        }
+      );
+
+      setMatchDraw(res.data.matchDraw);
+      setSuccessMsg("Champion saved successfully.");
+
+      await load();
+      await loadMatchDraw(tournamentId);
+    } catch (err) {
+      setDrawMsg(err.response?.data?.message || "Failed to save champion");
     }
   };
 
@@ -251,6 +393,8 @@ export default function OrganizerTournamentDashboard() {
       await api.delete(`/api/tournaments/${id}`);
       setSelectedTournament(null);
       setMatchDraw(null);
+      setFixtureForm({});
+      setResultForm({});
       await load();
       setSuccessMsg("Tournament deleted successfully.");
     } catch (err) {
@@ -294,6 +438,45 @@ export default function OrganizerTournamentDashboard() {
 
     return updated;
   }, [tournaments, searchTerm, statusFilter, sortBy]);
+
+  const getTournamentHealth = () => {
+    const matches = matchDraw?.matches || [];
+    const totalMatches = matches.length;
+
+    const fixturesScheduled = matches.filter(
+      (m) => m.matchDate || m.matchTime || m.venue
+    ).length;
+
+    const resultsCompleted = matches.filter(
+      (m) => m.status === "Completed" || m.winner || m.score
+    ).length;
+
+    const championStatus = matchDraw?.champion ? "Declared" : "Not Declared";
+
+    let systemMessage = "Tournament is still in draft stage.";
+
+    if (selectedTournament?.status === "Published" && totalMatches === 0) {
+      systemMessage = "Tournament is ready for match draw creation.";
+    } else if (totalMatches > 0 && fixturesScheduled < totalMatches) {
+      systemMessage = `${totalMatches - fixturesScheduled} match(es) still need fixture details.`;
+    } else if (totalMatches > 0 && resultsCompleted < totalMatches) {
+      systemMessage = `${totalMatches - resultsCompleted} match result(s) are still pending.`;
+    } else if (totalMatches > 0 && resultsCompleted === totalMatches && !matchDraw?.champion) {
+      systemMessage = "All results are updated. Tournament is ready to finalize.";
+    } else if (matchDraw?.champion) {
+      systemMessage = "Tournament has been finalized successfully.";
+    }
+
+    return {
+      totalMatches,
+      fixturesScheduled,
+      resultsCompleted,
+      championStatus,
+      systemMessage,
+    };
+  };
+
+  const tournamentHealth = getTournamentHealth();
 
   return (
     <div className="org-page">
@@ -525,7 +708,10 @@ export default function OrganizerTournamentDashboard() {
                       View Details
                     </button>
 
-                    <Link className="org-linkBtn org-btnEdit" to={`/organizer/tournaments/${t._id}/edit`}>
+                    <Link
+                      className="org-linkBtn org-btnEdit"
+                      to={`/organizer/tournaments/${t._id}/edit`}
+                    >
                       Edit
                     </Link>
 
@@ -557,6 +743,8 @@ export default function OrganizerTournamentDashboard() {
                 onClick={() => {
                   setSelectedTournament(null);
                   setMatchDraw(null);
+                  setFixtureForm({});
+                  setResultForm({});
                   setDrawMsg("");
                 }}
               >
@@ -651,6 +839,37 @@ export default function OrganizerTournamentDashboard() {
             </div>
 
             <div className="org-cardSection">
+              <div className="org-sectionLabel">Tournament Health Panel</div>
+
+              <div className="org-healthGrid">
+                <div className="org-healthCard">
+                  <span>Total Matches</span>
+                  <strong>{tournamentHealth.totalMatches}</strong>
+                </div>
+
+                <div className="org-healthCard">
+                  <span>Fixtures Scheduled</span>
+                  <strong>{tournamentHealth.fixturesScheduled}</strong>
+                </div>
+
+                <div className="org-healthCard">
+                  <span>Results Completed</span>
+                  <strong>{tournamentHealth.resultsCompleted}</strong>
+                </div>
+
+                <div className="org-healthCard">
+                  <span>Champion Status</span>
+                  <strong>{tournamentHealth.championStatus}</strong>
+                </div>
+              </div>
+
+              <div className="org-healthMessage">
+                <span>System Status</span>
+                <p>{tournamentHealth.systemMessage}</p>
+              </div>
+            </div>
+
+            <div className="org-cardSection">
               <div className="org-sectionLabel">Management Actions</div>
               <div className="org-actions org-actionsPrimary">
                 <button
@@ -694,14 +913,219 @@ export default function OrganizerTournamentDashboard() {
 
               {matchDraw?.matches?.length > 0 ? (
                 <div className="org-drawList">
-                  {matchDraw.matches.map((match) => (
-                    <div className="org-drawItem" key={match.matchNumber}>
-                      <span className="org-drawRound">{match.roundName}</span>
-                      <strong>
-                        Match {match.matchNumber}: {match.teamA} vs {match.teamB}
-                      </strong>
-                    </div>
-                  ))}
+                  {matchDraw.matches.map((match) => {
+                    const fixtureValues = fixtureForm[match.matchNumber] || {};
+                    const resultValues = resultForm[match.matchNumber] || {};
+                    const isByeMatch = match.teamA === "BYE" || match.teamB === "BYE";
+
+                    return (
+                      <div className="org-drawItem" key={match.matchNumber}>
+                        <span className="org-drawRound">{match.roundName}</span>
+                        <strong>
+                          Match {match.matchNumber}: {match.teamA} vs {match.teamB}
+                        </strong>
+
+                        <div style={{ marginTop: "12px" }}>
+                          <div className="org-sectionLabel" style={{ marginBottom: "10px" }}>
+                            Fixture Details
+                          </div>
+
+                          <div className="org-filterGrid">
+                            <div>
+                              <label className="org-filterLabel">Match Date</label>
+                              <input
+                                type="date"
+                                className="org-filterInput org-dateInput"
+                                value={fixtureValues.matchDate || ""}
+                                onChange={(e) =>
+                                  handleFixtureChange(
+                                    match.matchNumber,
+                                    "matchDate",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </div>
+
+                            <div>
+                              <label className="org-filterLabel">Match Time</label>
+                              <input
+                              type="time"
+                              className="org-filterInput org-timeInput"
+                              value={fixtureValues.matchTime || ""}
+                              onChange={(e) =>
+                                handleFixtureChange(
+                                  match.matchNumber,
+                                  "matchTime",
+                                  e.target.value
+                                )
+                              }
+                            />
+                            </div>
+
+                            <div>
+                              <label className="org-filterLabel">Venue</label>
+                              <input
+                                type="text"
+                                className="org-filterInput"
+                                placeholder="Main Ground"
+                                value={fixtureValues.venue || ""}
+                                onChange={(e) =>
+                                  handleFixtureChange(
+                                    match.matchNumber,
+                                    "venue",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+
+                          <div style={{ marginTop: "10px" }}>
+                            <label className="org-filterLabel">Fixture Remarks</label>
+                            <input
+                              type="text"
+                              className="org-filterInput"
+                              placeholder="Quarter final opening match"
+                              value={fixtureValues.remarks || ""}
+                              onChange={(e) =>
+                                handleFixtureChange(
+                                  match.matchNumber,
+                                  "remarks",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </div>
+
+                          <div className="org-actions" style={{ marginTop: "12px" }}>
+                            <button
+                              type="button"
+                              className="org-btn org-btnOutline"
+                              onClick={() => saveFixture(selectedTournament._id, match.matchNumber)}
+                            >
+                              Save Fixture
+                            </button>
+                          </div>
+                        </div>
+
+                        <div style={{ marginTop: "18px" }}>
+                          <div className="org-sectionLabel" style={{ marginBottom: "10px" }}>
+                            Match Result
+                          </div>
+
+                          {isByeMatch ? (
+                            <div className="org-emptyBox" style={{ marginTop: 0 }}>
+                              This is a BYE match. No manual result is needed.
+                            </div>
+                          ) : (
+                            <>
+                              <div className="org-filterGrid">
+                                <div>
+                                  <label className="org-filterLabel">Score</label>
+                                  <input
+                                    type="text"
+                                    className="org-filterInput"
+                                    placeholder="2 - 1"
+                                    value={resultValues.score || ""}
+                                    onChange={(e) =>
+                                      handleResultChange(
+                                        match.matchNumber,
+                                        "score",
+                                        e.target.value
+                                      )
+                                    }
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="org-filterLabel">Winner</label>
+                                  <select
+                                    className="org-filterInput"
+                                    value={resultValues.winner || ""}
+                                    onChange={(e) =>
+                                      handleResultChange(
+                                        match.matchNumber,
+                                        "winner",
+                                        e.target.value
+                                      )
+                                    }
+                                  >
+                                    <option value="">Select Winner</option>
+                                    <option value={match.teamA}>{match.teamA}</option>
+                                    <option value={match.teamB}>{match.teamB}</option>
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="org-filterLabel">Current Status</label>
+                                  <input
+                                    type="text"
+                                    className="org-filterInput"
+                                    value={match.status || "Scheduled"}
+                                    readOnly
+                                  />
+                                </div>
+                              </div>
+
+                              <div style={{ marginTop: "10px" }}>
+                                <label className="org-filterLabel">Result Remarks</label>
+                                <input
+                                  type="text"
+                                  className="org-filterInput"
+                                  placeholder="Strong performance"
+                                  value={resultValues.remarks || ""}
+                                  onChange={(e) =>
+                                    handleResultChange(
+                                      match.matchNumber,
+                                      "remarks",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              </div>
+
+                              <div className="org-actions" style={{ marginTop: "12px" }}>
+                                <button
+                                  type="button"
+                                  className="org-btn org-btnDark"
+                                  onClick={() => saveResult(selectedTournament._id, match.matchNumber)}
+                                >
+                                  Save Result
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  <div className="org-cardSection" style={{ marginTop: "18px" }}>
+                    <div className="org-sectionLabel">Champion</div>
+
+                    {matchDraw?.champion ? (
+                      <div className="org-successAlert" style={{ marginTop: "12px" }}>
+                        Champion: <b>{matchDraw.champion}</b>
+                        {matchDraw.runnerUp ? (
+                          <>
+                            {" "}
+                            | Runner-up: <b>{matchDraw.runnerUp}</b>
+                          </>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <div className="org-actions" style={{ marginTop: "12px" }}>
+                        <button
+                          type="button"
+                          className="org-btn org-btnPrimary"
+                          onClick={() => saveChampion(selectedTournament._id)}
+                        >
+                          Save Champion
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div className="org-emptyBox" style={{ marginTop: "10px" }}>
