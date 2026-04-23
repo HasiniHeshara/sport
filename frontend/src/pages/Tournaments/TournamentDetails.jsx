@@ -25,7 +25,7 @@ const addParticipantNotification = (user, text) => {
 
     localStorage.setItem(key, JSON.stringify(next));
   } catch {
-    // Ignore storage failures and keep registration flow uninterrupted.
+    // Ignore storage failures
   }
 };
 
@@ -61,11 +61,16 @@ const addOrganizerNotification = (tournament, text) => {
 export default function TournamentDetails() {
   const { id } = useParams();
   const location = useLocation();
+
   const [tournament, setTournament] = useState(null);
   const [registration, setRegistration] = useState(null);
+  const [payment, setPayment] = useState(null);
+  const [matchDraw, setMatchDraw] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
+  const [drawMsg, setDrawMsg] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
 
   const user = useMemo(() => {
@@ -86,14 +91,19 @@ export default function TournamentDetails() {
     try {
       setLoading(true);
       setMsg("");
+      setDrawMsg("");
+      setPayment(null);
+      setMatchDraw(null);
 
       const tournamentRes = await api.get(`/api/tournaments/${id}`);
       setTournament(tournamentRes.data);
 
+      let loadedRegistration = null;
+
       if (user?.role === "participant") {
         try {
           const editRegistrationId = location.state?.editRegistrationId;
-          
+
           let myRes;
           if (editRegistrationId) {
             myRes = await api.get(`/api/registrations/${editRegistrationId}`);
@@ -102,9 +112,11 @@ export default function TournamentDetails() {
             myRes = await api.get(`/api/tournaments/${id}/my-registration`);
             setIsEditMode(false);
           }
-          
+
           const reg = myRes.data;
+          loadedRegistration = reg;
           setRegistration(reg);
+
           setForm({
             teamName: reg.teamName || "",
             contactNumber: reg.contactNumber || user?.contactNumber || "",
@@ -119,6 +131,41 @@ export default function TournamentDetails() {
           }
           setRegistration(null);
           setIsEditMode(false);
+        }
+      } else {
+        setRegistration(null);
+      }
+
+      if (loadedRegistration?._id) {
+        try {
+          const paymentsRes = await api.get("/api/payments/my");
+          const myPayments = Array.isArray(paymentsRes.data) ? paymentsRes.data : [];
+
+          const matchedPayment = myPayments.find(
+            (p) =>
+              String(p.registrationId?._id || p.registrationId) ===
+              String(loadedRegistration._id)
+          );
+
+          setPayment(matchedPayment || null);
+
+          if (
+            loadedRegistration.status === "Approved" &&
+            matchedPayment?.status === "Verified"
+          ) {
+            try {
+              const drawRes = await api.get(`/api/tournaments/${id}/match-draw`);
+              setMatchDraw(drawRes.data);
+            } catch (err) {
+              setMatchDraw(null);
+              if (err.response?.status !== 404) {
+                setDrawMsg(err.response?.data?.message || "Failed to load match draw");
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Failed to load payments", err);
+          setPayment(null);
         }
       }
     } catch (err) {
@@ -141,6 +188,11 @@ export default function TournamentDetails() {
       tournament.status !== "Published"
     );
   }, [tournament]);
+
+  const paymentStatusLabel = payment?.status || "Not Paid Yet";
+
+  const canViewMatchDraw =
+    registration?.status === "Approved" && payment?.status === "Verified";
 
   const canResubmitRejected = registration?.status === "Rejected" && !isClosed;
   const canNewRegister = !registration && !isClosed;
@@ -185,6 +237,7 @@ export default function TournamentDetails() {
     const validMembers = form.members.filter(
       (m) => m.name.trim() && m.itNumber.trim()
     );
+
     if (validMembers.length === 0) {
       return "At least one valid team member is required";
     }
@@ -192,6 +245,7 @@ export default function TournamentDetails() {
     const itSet = new Set(
       validMembers.map((m) => m.itNumber.trim().toLowerCase())
     );
+
     if (itSet.size !== validMembers.length) {
       return "Duplicate member IT numbers are not allowed";
     }
@@ -320,6 +374,7 @@ export default function TournamentDetails() {
         </div>
 
         {msg && <p className="sp-error">{msg}</p>}
+        {drawMsg && <p className="sp-error">{drawMsg}</p>}
 
         <div className="sp-card">
           <div className="sp-meta">
@@ -330,8 +385,7 @@ export default function TournamentDetails() {
               {formatDate(tournament.endDate)}
             </div>
             <div>
-              <b>Registration Deadline:</b>{" "}
-              {formatDate(tournament.registrationDeadline)}
+              <b>Registration Deadline:</b> {formatDate(tournament.registrationDeadline)}
             </div>
             <div><b>Team Limit:</b> {tournament.teamLimit}</div>
             <div><b>Fee:</b> {tournament.registrationFee}</div>
@@ -364,6 +418,7 @@ export default function TournamentDetails() {
               <div><b>Team Name:</b> {registration.teamName}</div>
               <div><b>Contact Number:</b> {registration.contactNumber}</div>
               <div><b>Current Status:</b> {registration.status}</div>
+              <div><b>Payment Status:</b> {paymentStatusLabel}</div>
               {registration.rejectionReason ? (
                 <div><b>Rejection Reason:</b> {registration.rejectionReason}</div>
               ) : null}
@@ -383,6 +438,177 @@ export default function TournamentDetails() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {registration && (
+          <div className="sp-formCard" style={{ marginTop: 12 }}>
+            <h3 className="sp-cardTitle" style={{ marginBottom: 12 }}>
+              Match Draw & Fixtures
+            </h3>
+
+            {canViewMatchDraw ? (
+              matchDraw?.matches?.length > 0 ? (
+                <div>
+                  <div className="sp-meta" style={{ marginBottom: "14px" }}>
+                    <div><b>Access:</b> Registration approved and payment verified</div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: "14px",
+                    }}
+                  >
+                    {matchDraw.matches.map((match) => {
+                      const status = match.status || "Scheduled";
+                      const isCompleted = status === "Completed";
+                      const isByeMatch = match.teamA === "BYE" || match.teamB === "BYE";
+                      const isMyTeamMatch =
+                        registration.teamName === match.teamA ||
+                        registration.teamName === match.teamB;
+                      const isMyTeamWinner = match.winner === registration.teamName;
+
+                      return (
+                        <div
+                          key={match.matchNumber}
+                          style={{
+                            border: isMyTeamMatch
+                              ? "1px solid rgba(59,130,246,0.35)"
+                              : "1px solid rgba(255,255,255,0.12)",
+                            borderRadius: "14px",
+                            padding: "16px",
+                            background: isMyTeamMatch
+                              ? "rgba(59,130,246,0.07)"
+                              : "rgba(255,255,255,0.03)",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              gap: "10px",
+                              flexWrap: "wrap",
+                              marginBottom: "10px",
+                            }}
+                          >
+                            <div>
+                              <div style={{ fontWeight: "700", marginBottom: "4px" }}>
+                                {match.roundName}
+                              </div>
+                              <div>
+                                <b>Match {match.matchNumber}:</b> {match.teamA} vs {match.teamB}
+                              </div>
+                              {isMyTeamMatch ? (
+                                <div
+                                  style={{
+                                    marginTop: "6px",
+                                    fontSize: "13px",
+                                    fontWeight: "700",
+                                  }}
+                                >
+                                  Your team is in this match
+                                </div>
+                              ) : null}
+                            </div>
+
+                            <span
+                              style={{
+                                padding: "6px 10px",
+                                borderRadius: "999px",
+                                fontSize: "12px",
+                                fontWeight: "700",
+                                background: isCompleted
+                                  ? "rgba(34,197,94,0.15)"
+                                  : "rgba(148,163,184,0.16)",
+                                color: isCompleted ? "#86efac" : "#cbd5e1",
+                                border: isCompleted
+                                  ? "1px solid rgba(34,197,94,0.35)"
+                                  : "1px solid rgba(148,163,184,0.28)",
+                              }}
+                            >
+                              {status}
+                            </span>
+                          </div>
+
+                          <div
+                            style={{
+                              display: "grid",
+                              gap: "8px",
+                            }}
+                          >
+                            <div><b>Date:</b> {match.matchDate || "Not scheduled yet"}</div>
+                            <div><b>Time:</b> {match.matchTime || "Not scheduled yet"}</div>
+                            <div><b>Venue:</b> {match.venue || "Not assigned yet"}</div>
+
+                            {isByeMatch ? (
+                              <div><b>Note:</b> This is a BYE match.</div>
+                            ) : null}
+
+                            {match.score ? (
+                              <div><b>Score:</b> {match.score}</div>
+                            ) : (
+                              <div><b>Score:</b> Not updated yet</div>
+                            )}
+
+                            {match.winner ? (
+                              <div
+                                style={{
+                                  padding: "10px 12px",
+                                  borderRadius: "10px",
+                                  background: isMyTeamWinner
+                                    ? "rgba(34,197,94,0.18)"
+                                    : "rgba(34,197,94,0.12)",
+                                  border: "1px solid rgba(34,197,94,0.26)",
+                                }}
+                              >
+                                <b>Winner:</b> {match.winner}
+                                {isMyTeamWinner ? " (Your Team)" : ""}
+                              </div>
+                            ) : (
+                              <div><b>Winner:</b> Not decided yet</div>
+                            )}
+
+                            {match.remarks ? (
+                              <div><b>Remarks:</b> {match.remarks}</div>
+                            ) : null}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {matchDraw.champion ? (
+                    <div
+                      style={{
+                        marginTop: "16px",
+                        borderRadius: "14px",
+                        padding: "16px",
+                        background: "rgba(250,204,21,0.10)",
+                        border: "1px solid rgba(250,204,21,0.28)",
+                      }}
+                    >
+                      <div style={{ fontWeight: "800", marginBottom: "8px" }}>
+                        Tournament Result
+                      </div>
+                      <div><b>Champion:</b> {matchDraw.champion}</div>
+                      {matchDraw.runnerUp ? (
+                        <div><b>Runner-up:</b> {matchDraw.runnerUp}</div>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="sp-empty" style={{ marginTop: 0 }}>
+                  Match draw is not available yet.
+                </div>
+              )
+            ) : (
+              <div className="sp-empty" style={{ marginTop: 0 }}>
+                Match draw will be visible only after your registration is approved and payment is verified.
               </div>
             )}
           </div>

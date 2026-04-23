@@ -66,6 +66,12 @@ exports.generateMatchDraw = async (req, res) => {
         teamA,
         teamB,
         matchNumber,
+        matchDate: "",
+        matchTime: "",
+        venue: "",
+        score: "",
+        winner: "",
+        remarks: "",
         status: "Scheduled",
       });
 
@@ -75,6 +81,8 @@ exports.generateMatchDraw = async (req, res) => {
     const matchDraw = await MatchDraw.create({
       tournamentId,
       format: "Knockout",
+      champion: "",
+      runnerUp: "",
       matches,
     });
 
@@ -102,6 +110,159 @@ exports.getMatchDrawByTournament = async (req, res) => {
     }
 
     res.json(matchDraw);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.updateMatchFixture = async (req, res) => {
+  try {
+    const tournamentId = extractObjectId(req.params.id);
+    const matchNumber = Number(req.params.matchNumber);
+    const organizerId = extractObjectId(req.user?.userId || "");
+
+    const { matchDate, matchTime, venue, remarks } = req.body;
+
+    if (!tournamentId || !matchNumber) {
+      return res.status(400).json({ message: "Invalid tournament id or match number" });
+    }
+
+    const tournament = await Tournament.findById(tournamentId);
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+
+    if (!organizerId || String(tournament.organizerId) !== organizerId) {
+      return res.status(403).json({ message: "Forbidden: not owner of this tournament" });
+    }
+
+    const matchDraw = await MatchDraw.findOne({ tournamentId });
+
+    if (!matchDraw) {
+      return res.status(404).json({ message: "Match draw not found" });
+    }
+
+    const match = matchDraw.matches.find((m) => m.matchNumber === matchNumber);
+
+    if (!match) {
+      return res.status(404).json({ message: "Match not found" });
+    }
+
+    match.matchDate = matchDate || "";
+    match.matchTime = matchTime || "";
+    match.venue = venue || "";
+    match.remarks = remarks || "";
+
+    await matchDraw.save();
+
+    res.json({
+      message: "Match fixture updated successfully",
+      matchDraw,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.updateMatchResult = async (req, res) => {
+  try {
+    const tournamentId = extractObjectId(req.params.id);
+    const matchNumber = Number(req.params.matchNumber);
+    const organizerId = extractObjectId(req.user?.userId || "");
+
+    const { score, winner, remarks } = req.body;
+
+    if (!tournamentId || !matchNumber) {
+      return res.status(400).json({ message: "Invalid tournament id or match number" });
+    }
+
+    const tournament = await Tournament.findById(tournamentId);
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+
+    if (!organizerId || String(tournament.organizerId) !== organizerId) {
+      return res.status(403).json({ message: "Forbidden: not owner of this tournament" });
+    }
+
+    const matchDraw = await MatchDraw.findOne({ tournamentId });
+
+    if (!matchDraw) {
+      return res.status(404).json({ message: "Match draw not found" });
+    }
+
+    const match = matchDraw.matches.find((m) => m.matchNumber === matchNumber);
+
+    if (!match) {
+      return res.status(404).json({ message: "Match not found" });
+    }
+
+    if (!winner || ![match.teamA, match.teamB].includes(winner)) {
+      return res.status(400).json({
+        message: "Winner must be one of the teams in this match",
+      });
+    }
+
+    if (match.teamA === "BYE" || match.teamB === "BYE") {
+      return res.status(400).json({
+        message: "Cannot manually update result for a BYE match",
+      });
+    }
+
+    match.score = score || "";
+    match.winner = winner;
+    match.remarks = remarks || "";
+    match.status = "Completed";
+
+    await matchDraw.save();
+
+    res.json({
+      message: "Match result updated successfully",
+      matchDraw,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.updateChampion = async (req, res) => {
+  try {
+    const tournamentId = extractObjectId(req.params.id);
+    const organizerId = extractObjectId(req.user?.userId || "");
+    const { champion, runnerUp } = req.body;
+
+    if (!tournamentId) {
+      return res.status(400).json({ message: "Invalid tournament id" });
+    }
+
+    const tournament = await Tournament.findById(tournamentId);
+    if (!tournament) {
+      return res.status(404).json({ message: "Tournament not found" });
+    }
+
+    if (!organizerId || String(tournament.organizerId) !== organizerId) {
+      return res.status(403).json({ message: "Forbidden: not owner of this tournament" });
+    }
+
+    const matchDraw = await MatchDraw.findOne({ tournamentId });
+
+    if (!matchDraw) {
+      return res.status(404).json({ message: "Match draw not found" });
+    }
+
+    matchDraw.champion = champion || "";
+    matchDraw.runnerUp = runnerUp || "";
+
+    await matchDraw.save();
+
+    tournament.status = "Closed";
+    await tournament.save();
+
+    res.json({
+      message: "Champion updated successfully and tournament closed",
+      matchDraw,
+      tournament,
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

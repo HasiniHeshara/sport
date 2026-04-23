@@ -21,6 +21,36 @@ const matchSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    matchDate: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    matchTime: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    venue: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    score: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    winner: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    remarks: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     status: {
       type: String,
       enum: ["Scheduled", "Completed"],
@@ -42,6 +72,16 @@ const matchDrawSchema = new mongoose.Schema(
       type: String,
       enum: ["Knockout"],
       default: "Knockout",
+    },
+    champion: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    runnerUp: {
+      type: String,
+      default: "",
+      trim: true,
     },
     matches: [matchSchema],
   },
