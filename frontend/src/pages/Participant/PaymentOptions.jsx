@@ -6,7 +6,9 @@ import "./PaymentOptions.css";
 export default function PaymentOptions() {
   const navigate = useNavigate();
   const location = useLocation();
-  const paymentData = useMemo(() => location.state || {}, [location.state]);
+
+  const initialPaymentData = useMemo(() => location.state || {}, [location.state]);
+  const [paymentData, setPaymentData] = useState(initialPaymentData);
 
   const [slipFile, setSlipFile] = useState(null);
   const [successMsg, setSuccessMsg] = useState("");
@@ -15,6 +17,8 @@ export default function PaymentOptions() {
 
   const isVerified = paymentData.paymentStatus === "Verified";
   const isRejected = paymentData.paymentStatus === "Rejected";
+  const isPending = paymentData.paymentStatus === "Pending";
+  const hasExistingSlip = !!paymentData.slipOriginalName;
 
   const validateSlipForm = () => {
     const newErrors = {};
@@ -69,6 +73,16 @@ export default function PaymentOptions() {
       });
 
       setSuccessMsg(data.message || "Payment slip uploaded successfully.");
+
+      setPaymentData((prev) => ({
+        ...prev,
+        paymentStatus: data?.payment?.status || "Pending",
+        adminRemark: data?.payment?.adminRemark || "",
+        slipOriginalName: data?.payment?.slipOriginalName || slipFile.name,
+        slipUrl: data?.payment?.slipUrl || "",
+        verifiedAt: data?.payment?.verifiedAt || "",
+      }));
+
       setSlipFile(null);
       setErrors({});
     } catch (error) {
@@ -113,11 +127,17 @@ export default function PaymentOptions() {
 
         {isVerified ? (
           <div className="payment-success-box">
-            This payment has already been verified. You cannot pay again for this tournament.
+            This payment has already been verified. You cannot upload another slip for this tournament.
           </div>
         ) : (
           <div className="payment-form-card">
-            <h3>{isRejected ? "Re-upload Payment Slip" : "Upload Payment Slip"}</h3>
+            <h3>
+              {isRejected
+                ? "Re-upload Payment Slip"
+                : isPending
+                ? "Update Payment Slip"
+                : "Upload Payment Slip"}
+            </h3>
 
             <form onSubmit={handleSubmitSlip}>
               <div className="payment-form-grid">
@@ -169,6 +189,12 @@ export default function PaymentOptions() {
                 </div>
               </div>
 
+              {hasExistingSlip && (
+                <div className="current-slip-box">
+                  <b>Current Uploaded Slip:</b> {paymentData.slipOriginalName}
+                </div>
+              )}
+
               <button
                 type="submit"
                 className="payment-submit-btn"
@@ -178,6 +204,8 @@ export default function PaymentOptions() {
                   ? "Submitting..."
                   : isRejected
                   ? "Re-upload Slip"
+                  : isPending
+                  ? "Replace Slip"
                   : "Submit Slip"}
               </button>
             </form>

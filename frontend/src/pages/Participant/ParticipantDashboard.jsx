@@ -186,6 +186,9 @@ export default function ParticipantDashboard() {
         status: registration?.status || "Approved",
         paymentStatus: payment?.status || "",
         adminRemark: payment?.adminRemark || "",
+        slipOriginalName: payment?.slipOriginalName || "",
+        slipUrl: payment?.slipUrl || "",
+        verifiedAt: payment?.verifiedAt || "",
       },
     });
   };
@@ -219,10 +222,14 @@ export default function ParticipantDashboard() {
             </p>
           </div>
 
-          <button type="button" className="sp-btnDark" onClick={() => {
-            load();
-            loadNotifications();
-          }}>
+          <button
+            type="button"
+            className="sp-btnDark"
+            onClick={() => {
+              load();
+              loadNotifications();
+            }}
+          >
             {loading ? "Loading..." : "Refresh"}
           </button>
         </div>
@@ -322,7 +329,11 @@ export default function ParticipantDashboard() {
                         className="pay-now-btn"
                         onClick={() => handlePayNow(t, reg, payment)}
                       >
-                        {payment?.status === "Rejected" ? "Re-upload Slip" : "Pay Now"}
+                        {payment?.status === "Rejected"
+                          ? "Re-upload Slip"
+                          : payment?.status === "Pending"
+                          ? "Update Slip"
+                          : "Pay Now"}
                       </button>
                     )}
 
@@ -436,7 +447,11 @@ export default function ParticipantDashboard() {
                           className="pay-now-btn"
                           onClick={() => handlePayNow(t, r, payment)}
                         >
-                          {payment?.status === "Rejected" ? "Re-upload Slip" : "Pay Now"}
+                          {payment?.status === "Rejected"
+                            ? "Re-upload Slip"
+                            : payment?.status === "Pending"
+                            ? "Update Slip"
+                            : "Pay Now"}
                         </button>
                       )}
 
